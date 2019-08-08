@@ -161,6 +161,14 @@
   [n x]
   (vec (repeat n x)))
 
+(defn concatv [& colls]
+  (vec (apply concat colls)))
+
+(defn vec*
+  "Like `list*`, but returns a vector."
+  [& args]
+  (vec (apply list* args)))
+
 (defn reductions*
   "Like `reductions`, but returns nil if coll is empty, instead of a seq
    of length 1."
@@ -275,10 +283,14 @@
   [m k1 k2]
   (-> m (assoc k1 (m k2)) (assoc k2 (m k1))))
 
+(defn remove-vals
+  [m f]
+  (into {} (remove (comp f val)) m))
+
 (defn remove-map-nils
   "Dissoces the keys that are associated with nil from `m`."
   [m]
-  (into {} (filter (comp some? val)) m))
+  (remove-vals m nil?))
 
 (defn domap
   "Like `map`, but also calls doall on the result."
@@ -329,6 +341,12 @@
   "Removes the keys in `keyseq` from `m`."
   [m keyseq]
   (select-keys m (remove (set keyseq) (keys m))))
+
+(defn replace-keys
+  "For any key in m, replaces it with (rmap key) if it exists in rmap."
+  [rmap m]
+  (let [ks (keys m) vs (vals m)]
+    (zipmap (replace rmap ks) vs)))
 
 (defn select-random-keys
   "Returns a map with `num` mappings from `m`, selected randomly."
@@ -549,15 +567,19 @@
   (zipmap (map keyword syms) syms))
 
 (defmacro condf
-  "Takes an object `obj` and a set of test-fn/expr `pairs`. It evaluates
-   (test-fn `obj`) for each pair in order, and returns the expr of the
-   pair if the test-fn returns logical true. If no pair matches, returns
-   nil."
+  "Takes an object `obj` and a set of test-fn/expr `pairs`. It
+   evaluates (test-fn `obj`) for each pair in order, and returns the
+   expr of the pair if the test-fn returns logical true. A single
+   default expression can follow the pairs,and its value will be
+   returned if no clause matches. If no pair matches and there is no
+   default expression, returns nil."
   [obj & pairs]
   (when pairs
-    `(if (~(first pairs) ~obj)
-       ~(second pairs)
-       (condf ~obj ~@(next (next pairs))))))
+    (if (= (count pairs) 1)
+      (first pairs)
+      `(if (~(first pairs) ~obj)
+         ~(second pairs)
+         (condf ~obj ~@(next (next pairs)))))))
 
 (defmacro cond-pairs
   "Like `cond`, but expects each test-expr pair to be wrapped in a
@@ -693,6 +715,63 @@
    If called with one argument, `min` defaults to 0."
   ([max] (rand-int (inc max)))
   ([min max] (+ min (rand-int (inc (- max min))))))
+
+(defn partition-by-pairs
+  "Partitions `coll` by applying `pred` to consecutive pairs of `coll`,
+   and when `pred` returns false, split `coll` between those pairs. If
+   `keyfn` is provided, calls `keyfn` on the elements before using
+   `pred`."
+  ([pred coll] (partition-by-pairs identity pred coll))
+  ([keyfn pred coll]
+   (loop [left (rest coll) last (first coll) curr-partition [last] output []]
+     (if-let [e (first left)]
+       (if (pred last e)
+         (recur (rest left) e (conj curr-partition e) output)
+         (recur (rest left) e [e] (conj output curr-partition)))
+       (conj output curr-partition)))))
+
+(defn combine
+  "Returns a map where each nested element at a position p (a path into
+   the nested maps) is the result of calling `f` on all the elements of
+   all the given maps that are in position p. Does not call `f` if there
+   would only be one argument."
+  [f & maps]
+  (let [combine-entry (fn [m e]
+                        (let [[k v] e]
+                          (if (contains? m k)
+                            (if (map? v)
+                              (assoc m k (combine f (get m k) v))
+                              (assoc m k (f (get m k) v)))
+                            (assoc m k v))))
+        combine2 (fn [m m2]
+                   (reduce combine-entry m (seq m2)))]
+    (reduce combine2 maps)))
+
+(defn combine-when
+  "Returns a data structure where each nested element at a position p (a
+   path into the nested data structures) is the result of calling `f` on
+   all the elements, of all the given data structures, that are in
+   position p, if the element of the first data structure at position p
+   satisfies `pred`. Does not call `f` if there would only be one
+   argument."
+  ([pred f & structs]
+   (let [combine-entry (fn [struct e]
+                         (let [[k v] e]
+                           (if (contains? struct k)
+                             (assoc struct k (combine-when pred f (get struct k) v))
+                             (assoc struct k v))))
+         combine-seqs (fn [s s2]
+                        (let [[shortest longest] (sort-by count [s s2])]
+                          (cond-> (concat (map #(combine-when pred f % %2) s s2)
+                                          (drop (count shortest) longest))
+                            (vector? s) vec)))
+         combine2 (fn [struct struct2]
+                    (cond
+                      (pred struct) (f struct struct2)
+                      (sequential? struct) (combine-seqs struct struct2)
+                      (map? struct) (reduce combine-entry struct struct2)
+                      :else struct2))]
+     (reduce combine2 structs))))
 
 #?(:clj
    (do

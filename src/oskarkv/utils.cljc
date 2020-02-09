@@ -69,25 +69,6 @@
   [& nums]
   (/ (sum nums) (count nums)))
 
-(defn lastv
-  "Returns the last element of `v`, a vector. More efficient than `last` for
-   vectors."
-  [v]
-  (v (dec (count v))))
-
-(defn repeatv
-  "Like `repeat`, but returns a vector."
-  [n x]
-  (vec (repeat n x)))
-
-(defn concatv [& colls]
-  (vec (apply concat colls)))
-
-(defn repeat-str
-  "Returns a string of `s` repeated `n` times."
-  [n s]
-  (apply str (repeat n s)))
-
 (letfn [(rec [parents-fn xs]
           (when-let [ps (seq (mapcat parents-fn xs))]
             (concat ps (rec parents-fn ps))))]
@@ -726,6 +707,49 @@
                 (assoc-in* m path v))
               (->> (map #(struct-kinds pred %) structs)
                 (apply combine #(first %&)))))))
+
+(impl/make-v-and-str-fns
+ [filterv
+  mapv]
+ butlast
+ concat
+ dedupe
+ distinct
+ drop
+ drop-last
+ drop-while
+ filter
+ flatten
+ interleave
+ interpose
+ iterate-some
+ keep
+ keeps
+ map
+ map-indexed
+ mapcat
+ pair-cycle
+ range
+ remove
+ repeat
+ replace
+ rest
+ reverse
+ shuffle
+ sort
+ sort-by
+ take
+ take-last
+ take-nth
+ take-while
+ take-while-pairs
+ uneven-interleave)
+
+(defn lastv
+  "Returns the last element of `v`, a vector. More efficient than `last`
+   for vectors."
+  [v]
+  (v (dec (count v))))
 
 (defmacro while-let
   "Syntax: (while-let [form expr] body). Evaluate expr each iteration. If

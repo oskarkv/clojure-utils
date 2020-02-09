@@ -47,6 +47,33 @@
   `(defmacro ~name [inner-name# & rest#]
      (list* ~deffer (private-symbol inner-name#) rest#)))
 
+;; (resolve sym) does not work in ClojureScript
+#?(:clj
+   (defmacro make-v-and-str-fns
+     "Defines v and -str versions of already existing functions in `syms`,
+      like `mapv` for `map`, that return vectors and strings instead of
+      seqs. Symbols ending in v or -str can be given in `exceptions` (a
+      collection) to skip defining that function."
+     [exceptions & syms]
+     (letfn [(make-fns [sym]
+               (let [ex (set exceptions)
+                     m (meta (resolve sym))
+                     args (:arglists m)
+                     sym-fn #(symbol (str (name sym) %))
+                     meta-fn #(with-meta (sym-fn %) {:arglists `'~args})
+                     v-sym (meta-fn "v")
+                     str-sym (meta-fn "-str")]
+                 `(do
+                    ~(when-not (ex v-sym)
+                       `(def ~v-sym
+                          ~(str "Like `" sym "`, but calls `vec` on the result.")
+                          (comp vec ~sym)))
+                    ~(when-not (ex str-sym)
+                       `(def ~str-sym
+                          ~(str "Like `" sym "`, but applies `str` to the result.")
+                          (comp #(apply str %) ~sym))))))]
+       `(do ~@(map make-fns syms)))))
+
 (defmacro define-ordinal-functions
   "Defines functions third, fourth, ..., tenth to get those elements from
    a collection. Also defines firstv, secondv, ..., tenthv to get

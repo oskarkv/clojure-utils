@@ -482,7 +482,6 @@
   #?(:cljs (.getTime (js/Date.))
      :clj (System/currentTimeMillis)))
 
-
 ;; Could perhaps be more efficient in Java by using Random.nextGaussian
 (defn- rand-gaussian*
   "Returns random Gaussian distributed number with mean 0 and standard

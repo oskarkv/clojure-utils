@@ -12,7 +12,9 @@
 ;;; work when requiring from cljs. If you want to use a macro in a later
 ;;; function definition you have to move the macro to the impl
 ;;; namespace. If you want to use a macro in a macro definition you can
-;;; move the later definition into a #?(:clj ...) block.
+;;; move the later definition into a #?(:clj ...) block. All macros
+;;; could be in #?(:clj ...) blocks, but the extra indendation is
+;;; annoying, so I avoid it if not necessary.
 
 ;; WARNING: Definitions of the macros in this `do` block exist in both
 ;; src/utils.cljc and src/utils/impl.cljc , because they are both used

@@ -169,6 +169,11 @@
   ([f coll] (keep f coll))
   ([f coll & colls]  (remove nil? (apply map f coll colls))))
 
+(defn first-index
+  "Returns the index of the first item in `coll` that satisfies `pred`."
+  [pred coll]
+  (first (keep-indexed (fn [i val] (when (pred val) i)) coll)))
+
 (defn infinite-shuffle
   "Returns the concatenation of (shuffle `coll`) and (infinite-shuffle
    `coll`)."

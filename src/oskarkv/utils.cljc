@@ -449,9 +449,9 @@
   (lazy-seq
    (letfn [(bfs* [prevs visited]
              (lazy-seq
-              (let [ss (set/difference (set (mapcat successors prevs)) visited)]
+              (let [ss (remove visited (mapcat successors prevs))]
                 (if (seq ss)
-                  (cons ss (bfs* ss (set/union visited ss)))))))]
+                  (cons ss (bfs* ss (set/union visited (set ss))))))))]
      (cons #{start} (bfs* [start] #{start})))))
 
 (defn bfs

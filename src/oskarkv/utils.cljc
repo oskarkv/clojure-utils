@@ -572,7 +572,8 @@
                             (assoc m k v))))
         combine2 (fn [m m2]
                    (reduce combine-entry m (seq m2)))]
-    (reduce combine2 maps)))
+    (when (seq maps)
+      (reduce combine2 maps))))
 
 (defn merge-nested-when
   "Returns a data structure where each nested element at a position p (a
@@ -588,32 +589,33 @@
    structure will be used at position p. If `pred` would throw and
    exception when used on an element, instead consider `pred`
    unsatisfied."
-  ([pred f & structs]
-   (let [combine-entry (fn [struct e]
-                         (let [[k v] e]
-                           (if (contains? struct k)
-                             (assoc struct k (merge-nested-when
-                                              pred f (get struct k) v))
-                             (assoc struct k v))))
-         combine-seqs (fn [s s2]
-                        (let [[shortest longest] (sort-by count [s s2])]
-                          (cond-> (concat (map #(merge-nested-when pred f % %2)
-                                               s s2)
-                                          (drop (count shortest) longest))
-                            (vector? s) vec)))
-         combine2 (fn [struct struct2]
-                    (let [pred* (fn [x]
-                                  (impl/ignore-exception (pred x)))
-                          sat (pred* struct)
-                          sat2 (pred* struct2)]
-                      (cond
-                        (and sat sat2) (f struct struct2)
-                        sat struct
-                        sat2 struct2
-                        (sequential? struct) (combine-seqs struct struct2)
-                        (map? struct) (reduce combine-entry struct struct2)
-                        :else struct2)))]
-     (reduce combine2 structs))))
+  [pred f & structs]
+  (let [combine-entry (fn [struct e]
+                        (let [[k v] e]
+                          (if (contains? struct k)
+                            (assoc struct k (merge-nested-when
+                                             pred f (get struct k) v))
+                            (assoc struct k v))))
+        combine-seqs (fn [s s2]
+                       (let [[shortest longest] (sort-by count [s s2])]
+                         (cond-> (concat (map #(merge-nested-when pred f % %2)
+                                              s s2)
+                                         (drop (count shortest) longest))
+                           (vector? s) vec)))
+        combine2 (fn [struct struct2]
+                   (let [pred* (fn [x]
+                                 (impl/ignore-exception (pred x)))
+                         sat (pred* struct)
+                         sat2 (pred* struct2)]
+                     (cond
+                       (and sat sat2) (f struct struct2)
+                       sat struct
+                       sat2 struct2
+                       (sequential? struct) (combine-seqs struct struct2)
+                       (map? struct) (reduce combine-entry struct struct2)
+                       :else struct2)))]
+    (when (seq structs)
+      (reduce combine2 structs))))
 
 (defn- map-paths
   "Returns a seq of [path value] items for each value nested inside `m`

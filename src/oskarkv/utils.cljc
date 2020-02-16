@@ -1014,10 +1014,10 @@
                ~~@body))))
 
      (defmacro! with-indented-printlns
-       "Modifies defn and fn forms under this macro so that `println` in the
-        defn and fn forms prints with an indent depending on how deep the
-        call is, i.e. recursive calls will print with a greater indent, for
-        example."
+       "Modifies `defn` and `fn` forms under this macro so that `println` in
+        the `defn` and `fn` forms prints with an indentation depending on how
+        deep the call is, i.e. recursive calls will print with a greater
+        indent, for example."
        {:style/indent 0}
        [& code]
        (letfn [(handle-form [n form]

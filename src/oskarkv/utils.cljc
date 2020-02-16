@@ -862,8 +862,7 @@
 (letfn [(contains-$? [form]
           (some #{'$} (tree-seq coll? seq form)))
         (insert-$-in-one [arrow form]
-          (cond (contains-$? form) form
-                :else (list arrow '$ form)))
+          (if (contains-$? form) form (list arrow '$ form)))
         (insert-$-in-many [arrow forms]
           (map #(insert-$-in-one arrow %) forms))
         (simple-body [x arrow forms]

@@ -1,3 +1,17 @@
+* Use
+
+Clojure CLI/deps.edn
+#+BEGIN_SRC clojure
+oskarkv/utils {:mvn/version "0.1.0"}
+#+END_SRC
+
+Leiningen/Boot
+#+BEGIN_SRC clojure
+[oskarkv/utils "0.1.0"]
+#+END_SRC
+
+[[https://clojars.org/oskarkv/utils][Clojars link]]
+
 * License
 
 The MIT License

@@ -33,6 +33,13 @@
 
 (impl/defprivatedef defmacro- `defmacro)
 
+(defmacro alias-var
+  "Create a new var with the value of evaluating `target-symbol` in the
+   current namespace, and copies the metadata of `target-symbol`'s var."
+  [alias-symbol target-symbol]
+  `(do (def ~alias-symbol ~target-symbol)
+       (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol)))))
+
 (defmacro condf
   "Takes an object `obj` and zero or more test-fn/expr `pairs`.
    Evaluates (test-fn `obj`) for each pair in order, and returns the

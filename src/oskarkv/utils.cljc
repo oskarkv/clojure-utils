@@ -41,6 +41,10 @@
   `(do (def ~alias-symbol ~target-symbol)
        (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol)))))
 
+(alias-var abs math/abs)
+
+(alias-var invert-map set/map-invert)
+
 (defmacro condf
   "Takes an object `obj` and zero or more test-fn/expr `pairs`.
    Evaluates (test-fn `obj`) for each pair in order, and returns the
@@ -68,8 +72,6 @@
   "Sums the numbers in `nums`."
   [nums]
   (reduce + nums))
-
-(alias-var abs math/abs)
 
 (defn normalize
   "Returns a sequence where each number in `nums` has been divided by
@@ -361,11 +363,6 @@
     "Returns a set of all possible pairs (sets) of items in `coll`."
     [coll]
     ((all-pairs* hash-set) coll)))
-
-(defn invert-map
-  "Returns a new map that has the vals of `m` mapped to the keys of `m`."
-  [m]
-  (reduce (fn [m [k v]] (assoc m v k)) {} m))
 
 (defn call-times
   "Calls `f` on `args`, then again on the result, and so on, `n` times."

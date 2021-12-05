@@ -73,9 +73,9 @@
 
 (defn normalize
   "Returns a sequence where each number in `nums` has been divided by
-   the sum of `nums`."
+   the absolute value of the sum of `nums`."
   [nums]
-  (map * nums (repeat (/ (sum nums)))))
+  (map * nums (repeat (/ (abs (sum nums))))))
 
 (defn fmap
   "Applies `f` to the vals in `m` and returns a map. If `colls` are

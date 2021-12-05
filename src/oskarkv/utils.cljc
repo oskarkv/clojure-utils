@@ -548,6 +548,16 @@
   (fn [& args]
     (every? #(apply % args) ps)))
 
+(defn some-in
+  "Like (some identity `coll`)."
+  [coll]
+  (some identity coll))
+
+(defn every-in?
+  "Like (every? identity `coll`)."
+  [coll]
+  (every? identity coll))
+
 (defn bfs-waves
   "Returns a lazy sequence of the waves of successors in a breadth-first
    search from `start` using the given function `successors` to generate

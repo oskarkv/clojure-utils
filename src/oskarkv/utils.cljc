@@ -4,6 +4,7 @@
    [clojure.string :as str]
    [clojure.walk :as walk]
    [clojure.set :as set]
+   [clojure.math.numeric-tower :as math]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
   #?(:clj (:import (java.util Random))))
@@ -67,6 +68,8 @@
   "Sums the numbers in `nums`."
   [nums]
   (reduce + nums))
+
+(alias-var abs math/abs)
 
 (defn normalize
   "Returns a sequence where each number in `nums` has been divided by

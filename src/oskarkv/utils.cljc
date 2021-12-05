@@ -33,6 +33,191 @@
 
 (impl/defprivatedef defmacro- `defmacro)
 
+(defmacro condf
+  "Takes an object `obj` and zero or more test-fn/expr `pairs`.
+   Evaluates (test-fn `obj`) for each pair in order, and returns the
+   expr of the pair if the test-fn returns logical true. A single
+   default expression can follow the pairs, and its value will be
+   returned if no clause matches. If no pair matches and there is no
+   default expression, returns `nil`."
+  {:style/indent 1}
+  [obj & pairs]
+  (when pairs
+    (if (= (count pairs) 1)
+      (first pairs)
+      `(if (~(first pairs) ~obj)
+         ~(second pairs)
+         (condf ~obj ~@(next (next pairs)))))))
+
+(defmacro condp*
+  "Like `condp` but the predicate takes the arguments in the reverse
+   order."
+  {:style/indent 2}
+  [pred & args]
+  `(condp (flip ~pred) ~@args))
+
+(defn sum
+  "Sums the numbers in `nums`."
+  [nums]
+  (reduce + nums))
+
+(defn normalize
+  "Returns a sequence where each number in `nums` has been divided by
+   the sum of `nums`."
+  [nums]
+  (map * nums (repeat (/ (sum nums)))))
+
+(defn fmap
+  "Applies `f` to the vals in `m` and returns a map. If `colls` are
+   provided,applies `f` to the vals in `m` and the items from `colls` in
+   parallel, as with `clojure.core/map`, but keep in mind that the order
+   of the map elements is unreliable."
+  ([f m] (into {} (map (fn [[k v]] [k (f v)])) m))
+  ([f m & colls] (zipmap (keys m) (apply map f (vals m) colls))))
+
+(defn keeps
+  "Like `keep`, but can take more than one coll, similar to `map`."
+  ([f] (keep f))
+  ([f coll] (keep f coll))
+  ([f coll & colls]  (remove nil? (apply map f coll colls))))
+
+(defn flatten-all
+  "Like `flatten`, but also flattens sets and maps."
+  [x]
+  (remove coll? (tree-seq coll? seq x)))
+
+(defn flatten-more
+  "Like `flatten`, but also flattens sets."
+  [x]
+  (let [pred (some-fn sequential? set?)]
+    (remove pred (tree-seq pred seq x))))
+
+(defn indexed
+  "Returns ([0 a] [1 b] ...) for input (a b ...)."
+  [coll]
+  (map-indexed vector coll))
+
+(defn zip
+  "Returns a lazy sequence of vectors, where the i:th vector contains the
+   i:th elements of the arguments, in the order the arguments were
+   given."
+  ([coll1 coll2] (map vector coll1 coll2))
+  ([coll1 coll2 & more]
+   (apply map vector coll1 coll2 more)))
+
+(defn iterate-some
+  "Like `iterate`, but stops when `f` returns nil."
+  [f x]
+  (take-while some? (iterate #(when % (f %)) x)))
+
+(defn pair-cycle
+  "Returns ((n1 n2) (n2 n3) ... (nn n1)) for input (n1 n2 ... nn)."
+  [coll]
+  (take (count coll) (partition 2 1 (cycle coll))))
+
+(defn takes
+  "Like `take`, but the first argument is a seq of numbers. Returns a seq
+   of seqs of elements from `coll`."
+  [[n & ns] coll]
+  (when n
+    (cons (take n coll)
+          (takes ns (drop n coll)))))
+
+(defn take-while-pairs
+  "Returns a lazy sequence of successive items from `coll` while (`pred`
+   previous-item item) returns true. The returned sequence will have at
+   least one item if `coll` is not empty. If `keyfn` is provided,
+   `keyfn` is applied to the items before using `pred`."
+  ([pred coll]
+   (lazy-seq
+    (when-let [[a b :as s] (seq coll)]
+      (if (and (not (empty? (rest s)))
+               (pred a b))
+        (cons a (take-while-pairs pred (rest s)))
+        (list a)))))
+  ([keyfn pred coll]
+   (take-while-pairs #(pred (keyfn %) (keyfn %2)) coll)))
+
+(defn- interleave-runs
+  "Returns the lengths of runs of elements from seq-a if one were to
+   interleave seq-a with seq-b as evenly as possible, given that seq-a
+   has length `a` and seq-b has length `b`, `a` >= `b`. The imagined
+   interleaving starts with a run of elements from seq-a."
+  [a b]
+  (let [ib (inc b)
+        n (int (/ a ib))
+        left (rem a ib)]
+    (concat (repeat left (inc n))
+            (repeat (- ib left) n))))
+
+(defn uneven-interleave
+  "Interleaves the two given sequences, which may be of different lengths,
+   as evenly as possible."
+  [s1 s2]
+  (letfn [(interleave* [s1 s2 rs]
+            (when (seq s1)
+              (lazy-cat
+               (take (first rs) s1)
+               (take 1 s2)
+               (interleave* (drop (first rs) s1) (rest s2) (rest rs)))))]
+    (if (< (count s1) (count s2))
+      (uneven-interleave s2 s1)
+      (interleave* s1 s2 (interleave-runs (count s1) (count s2))))))
+
+(impl/make-v-and-str-fns
+ [filterv
+  mapv]
+ butlast
+ concat
+ dedupe
+ distinct
+ drop
+ drop-last
+ drop-while
+ filter
+ flatten
+ flatten-all
+ flatten-more
+ fmap
+ indexed
+ interleave
+ interpose
+ iterate-some
+ keep
+ keeps
+ map
+ map-indexed
+ mapcat
+ normalize
+ pair-cycle
+ range
+ remove
+ repeat
+ replace
+ rest
+ reverse
+ shuffle
+ sort
+ sort-by
+ take
+ take-last
+ take-nth
+ take-while
+ take-while-pairs
+ uneven-interleave
+ zip)
+
+(defn lastv
+  "Returns the last element of `v`, a vector. More efficient than `last`
+   for vectors."
+  [v]
+  (v (dec (count v))))
+
+(defn transpose
+  "Transposes `matrix`. `matrix` can be any collection of collections."
+  [matrix]
+  (apply zipv matrix))
+
 (defn printit
   "Prints `x` with `println` and returns `x`."
   [x]
@@ -53,16 +238,13 @@
   [x]
   (pp/pprint x) (println) x)
 
-(defn sum
-  "Sums the numbers in `nums`."
-  [nums]
-  (reduce + nums))
-
-(defn normalize
-  "Returns a sequence where each number in `nums` has been divided by
-   the sum of `nums`."
-  [nums]
-  (map * nums (repeat (/ (sum nums)))))
+(defn sign
+  "Returns 1 for positive numbers, -1 for negative numbers, and 0 for 0."
+  [x]
+  (condf x
+    pos? 1
+    neg? -1
+    0))
 
 (defn avg
   "Returns the average of `nums`."
@@ -128,17 +310,6 @@
   [& args]
   (apply vector args))
 
-(defn flatten-all
-  "Like `flatten`, but also flattens sets and maps."
-  [x]
-  (remove coll? (tree-seq coll? seq x)))
-
-(defn flatten-more
-  "Like `flatten`, but also flattens sets."
-  [x]
-  (let [pred (some-fn sequential? set?)]
-    (remove pred (tree-seq pred seq x))))
-
 (defn reductions*
   "Like `reductions`, but returns nil if coll is empty, instead of a seq
    of length 1."
@@ -155,20 +326,6 @@
    the first element is the last reduction."
   (impl/reversed-reductions reductions*))
 
-(defn fmap
-  "Applies `f` to the vals in `m` and returns a map. If `colls` are
-   provided,applies `f` to the vals in `m` and the items from `colls` in
-   parallel, as with `clojure.core/map`, but keep in mind that the order
-   of the map elements is unreliable."
-  ([f m] (into {} (map (fn [[k v]] [k (f v)])) m))
-  ([f m & colls] (zipmap (keys m) (apply map f (vals m) colls))))
-
-(defn keeps
-  "Like `keep`, but can take more than one coll, similar to `map`."
-  ([f] (keep f))
-  ([f coll] (keep f coll))
-  ([f coll & colls]  (remove nil? (apply map f coll colls))))
-
 (defn first-index
   "Returns the index of the first item in `coll` that satisfies `pred`."
   [pred coll]
@@ -179,40 +336,6 @@
    `coll`)."
   [coll]
   (lazy-cat (shuffle coll) (infinite-shuffle coll)))
-
-(defn takes
-  "Like `take`, but the first argument is a seq of numbers. Returns a seq
-   of seqs of elements from `coll`."
-  [[n & ns] coll]
-  (when n
-    (cons (take n coll)
-          (takes ns (drop n coll)))))
-
-(defn- interleave-runs
-  "Returns the lengths of runs of elements from seq-a if one were to
-   interleave seq-a with seq-b as evenly as possible, given that seq-a
-   has length `a` and seq-b has length `b`, `a` >= `b`. The imagined
-   interleaving starts with a run of elements from seq-a."
-  [a b]
-  (let [ib (inc b)
-        n (int (/ a ib))
-        left (rem a ib)]
-    (concat (repeat left (inc n))
-            (repeat (- ib left) n))))
-
-(defn uneven-interleave
-  "Interleaves the two given sequences, which may be of different lengths,
-   as evenly as possible."
-  [s1 s2]
-  (letfn [(interleave* [s1 s2 rs]
-            (when (seq s1)
-              (lazy-cat
-               (take (first rs) s1)
-               (take 1 s2)
-               (interleave* (drop (first rs) s1) (rest s2) (rest rs)))))]
-    (if (< (count s1) (count s2))
-      (uneven-interleave s2 s1)
-      (interleave* s1 s2 (interleave-runs (count s1) (count s2))))))
 
 (letfn [(all-pairs* [f]
           (fn [coll]
@@ -228,11 +351,6 @@
     "Returns a set of all possible pairs (sets) of items in `coll`."
     [coll]
     ((all-pairs* hash-set) coll)))
-
-(defn indexed
-  "Returns ([0 a] [1 b] ...) for input (a b ...)."
-  [coll]
-  (map-indexed vector coll))
 
 (defn invert-map
   "Returns a new map that has the vals of `m` mapped to the keys of `m`."
@@ -325,28 +443,10 @@
   [& args]
   (dorun (apply map args)))
 
-(defn iterate-some
-  "Like `iterate`, but stops when `f` returns nil."
-  [f x]
-  (take-while some? (iterate #(when % (f %)) x)))
-
 (defn vectorize
   "Turns all sequences in `form` into vectors."
   [form]
   (walk/postwalk (fn [form] (if (seq? form) (vec form) form)) form))
-
-(defn pair-cycle
-  "Returns ((n1 n2) (n2 n3) ... (nn n1)) for input (n1 n2 ... nn)."
-  [coll]
-  (take (count coll) (partition 2 1 (cycle coll))))
-
-(defn zip
-  "Returns a lazy sequence of vectors, where the i:th vector contains the
-   i:th elements of the arguments, in the order the arguments were
-   given."
-  ([coll1 coll2] (map vector coll1 coll2))
-  ([coll1 coll2 & more]
-   (apply map vector coll1 coll2 more)))
 
 (defn reject-indices
   "Returns a vector that is like `coll` but with the elements at `indices`
@@ -528,21 +628,6 @@
   ([max] (rand-int (inc max)))
   ([min max] (+ min (rand-int (inc (- max min))))))
 
-(defn take-while-pairs
-  "Returns a lazy sequence of successive items from `coll` while (`pred`
-   previous-item item) returns true. The returned sequence will have at
-   least one item if `coll` is not empty. If `keyfn` is provided,
-   `keyfn` is applied to the items before using `pred`."
-  ([pred coll]
-   (lazy-seq
-    (when-let [[a b :as s] (seq coll)]
-      (if (and (not (empty? (rest s)))
-               (pred a b))
-        (cons a (take-while-pairs pred (rest s)))
-        (list a)))))
-  ([keyfn pred coll]
-   (take-while-pairs #(pred (keyfn %) (keyfn %2)) coll)))
-
 (defn partition-by-pairs
   "Partitions `coll` by applying `pred` to consecutive pairs of `coll`,
    and when `pred` returns false, split `coll` between those
@@ -714,49 +799,6 @@
               (->> (map #(struct-kinds pred %) structs)
                 (apply combine #(first %&)))))))
 
-(impl/make-v-and-str-fns
- [filterv
-  mapv]
- butlast
- concat
- dedupe
- distinct
- drop
- drop-last
- drop-while
- filter
- flatten
- interleave
- interpose
- iterate-some
- keep
- keeps
- map
- map-indexed
- mapcat
- pair-cycle
- range
- remove
- repeat
- replace
- rest
- reverse
- shuffle
- sort
- sort-by
- take
- take-last
- take-nth
- take-while
- take-while-pairs
- uneven-interleave)
-
-(defn lastv
-  "Returns the last element of `v`, a vector. More efficient than `last`
-   for vectors."
-  [v]
-  (v (dec (count v))))
-
 (defmacro while-let
   "Syntax: (while-let [form expr] body). Evaluate expr each iteration. If
    it's truthy, evaluate body, with form, which can be a destructuring,
@@ -805,22 +847,6 @@
   {:style/indent 0}
   [& syms]
   (zipmap (map keyword syms) syms))
-
-(defmacro condf
-  "Takes an object `obj` and zero or more test-fn/expr `pairs`.
-   Evaluates (test-fn `obj`) for each pair in order, and returns the
-   expr of the pair if the test-fn returns logical true. A single
-   default expression can follow the pairs, and its value will be
-   returned if no clause matches. If no pair matches and there is no
-   default expression, returns `nil`."
-  {:style/indent 1}
-  [obj & pairs]
-  (when pairs
-    (if (= (count pairs) 1)
-      (first pairs)
-      `(if (~(first pairs) ~obj)
-         ~(second pairs)
-         (condf ~obj ~@(next (next pairs)))))))
 
 (letfn [(expand [[x :as s]]
           (when (seq s)

@@ -198,7 +198,6 @@
  flatten
  flatten-all
  flatten-more
- fmap
  indexed
  interleave
  interpose

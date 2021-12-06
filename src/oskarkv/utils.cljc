@@ -311,6 +311,14 @@
     (assoc-in to-path (get-in m from-path))
     (dissoc-in from-path)))
 
+(defn move
+  "Moves the value in an associative structure `m` at key `from` to key
+   `to`."
+  [m from to]
+  (-> m
+    (assoc to (m from))
+    (dissoc from)))
+
 (defn swap-in
   "Swaps the values in an associative structure `m` at `path1` and
    `path2` (sequenceses of keys)."

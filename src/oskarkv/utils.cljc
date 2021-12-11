@@ -595,16 +595,16 @@
 
 (defn bfs-waves
   "Returns a lazy sequence of the waves of successors in a breadth-first
-   search from `start` using the given function `successors` to generate
+   search from `start` using the given function `successors-fn` to generate
    the successors of a node."
-  [start successors]
+  [start successors-fn]
   (lazy-seq
    (letfn [(bfs* [prevs visited]
              (lazy-seq
-              (let [ss (remove visited (mapcat successors prevs))]
+              (let [ss (set (remove visited (mapcat successors-fn prevs)))]
                 (if (seq ss)
-                  (cons ss (bfs* ss (set/union visited (set ss))))))))]
-     (cons #{start} (bfs* [start] #{start})))))
+                  (cons ss (bfs* ss (set/union visited ss)))))))]
+     (cons #{start} (bfs* #{start} #{start})))))
 
 (defn bfs
   "Returns a lazy sequence of nodes in a breadth-first search from `start`

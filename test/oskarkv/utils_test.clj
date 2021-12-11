@@ -27,7 +27,7 @@
 (letfn [(two-more [n]
           [(* 2 n) (* 3 n)])]
   (deftest bfs
-    (is (= (take 6 (u/bfs 1 two-more)) '(1 2 3 4 6 6)))
+    (is (= (set (take 6 (u/bfs 1 two-more))) #{1 2 3 4 6 9}))
     (is (= (u/bfs 3 (constantly nil)) '(3))))
 
   (deftest dfs

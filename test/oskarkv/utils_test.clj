@@ -35,7 +35,7 @@
     (is (= (u/dfs 3 (constantly nil)) '(3)))))
 
 (deftest merge-nested
-  (is (= (u/merge-nested +) {}))
+  (is (= (u/merge-nested +) nil))
   (is (= (u/merge-nested + {:a 1 :b -1}) {:a 1 :b -1}))
   (is (= (u/merge-nested + {:a {:b 1} :c 1} {:a {:b 1}} {:c 1} {:d 1})
          {:a {:b 2} :c 2 :d 1}))
@@ -43,7 +43,7 @@
          {:a [1 2] :b 2})))
 
 (deftest merge-nested-when
-  (is (= (u/merge-nested-when pos? +) {}))
+  (is (= (u/merge-nested-when pos? +) nil))
   (is (= (u/merge-nested-when pos? + {:a 1 :b -1}) {:a 1 :b -1}))
   (is (= (u/merge-nested-when pos? + {:a -1 :b 1} {:a -1 :b 1})
          {:a -1 :b 2}))

@@ -68,6 +68,26 @@
   [pred & args]
   `(condp (flip ~pred) ~@args))
 
+(defn ffilter
+  "Like (first (filter `pred` `coll`)."
+  [pred coll]
+  (first (filter pred coll)))
+
+(defn floor
+  "Returns a the floor of `x` as a long."
+  [x]
+  (long (math/floor x)))
+
+(defn ceil
+  "Returns a the ceil of `x` as a long."
+  [x]
+  (long (math/ceil x)))
+
+(defn parse-int
+  "Parses a long with Long/parseLong."
+  ([x] (Long/parseLong x))
+  ([x radix] (Long/parseLong x radix)))
+
 (defn sum
   "Sums the numbers in `nums`."
   [nums]

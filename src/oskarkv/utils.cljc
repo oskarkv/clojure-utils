@@ -267,6 +267,8 @@
   [x]
   (tap> x) x)
 
+(alias-var pprint pp/pprint)
+
 (defn pprintit
   "Pprints `x` and returns `x`."
   [x]

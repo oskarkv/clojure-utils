@@ -38,8 +38,9 @@
   "Create a new var with the value of evaluating `target-symbol` in the
    current namespace, and copies the metadata of `target-symbol`'s var."
   [alias-symbol target-symbol]
-  `(do (def ~alias-symbol ~target-symbol)
-       (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol)))))
+    `(do (let [target-thing# @(var ~target-symbol)]
+       (def ~alias-symbol target-thing#)
+         (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol))))))
 
 (defalias abs math/abs)
 

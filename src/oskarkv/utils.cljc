@@ -42,6 +42,13 @@
        (def ~alias-symbol target-thing#)
          (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol))))))
 
+(defmacro use-names [ns-sym pred]
+  (let [pred (eval pred)]
+    `(do
+       ~@(map (fn [[sym v]]
+                (list `defalias sym (symbol (name ns-sym) (name sym))))
+              (filter (fn [[sym v]] (pred (name sym))) (ns-publics ns-sym))))))
+
 (defalias abs math/abs)
 
 (defalias invert-map set/map-invert)

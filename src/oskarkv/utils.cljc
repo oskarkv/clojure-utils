@@ -34,16 +34,16 @@
 
 (impl/defprivatedef defmacro- `defmacro)
 
-(defmacro alias-var
+(defmacro defalias
   "Create a new var with the value of evaluating `target-symbol` in the
    current namespace, and copies the metadata of `target-symbol`'s var."
   [alias-symbol target-symbol]
   `(do (def ~alias-symbol ~target-symbol)
        (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol)))))
 
-(alias-var abs math/abs)
+(defalias abs math/abs)
 
-(alias-var invert-map set/map-invert)
+(defalias invert-map set/map-invert)
 
 (defmacro condf
   "Takes an object `obj` and zero or more test-fn/expr `pairs`.
@@ -267,7 +267,7 @@
   [x]
   (tap> x) x)
 
-(alias-var pprint pp/pprint)
+(defalias pprint pp/pprint)
 
 (defn pprintit
   "Pprints `x` and returns `x`."

@@ -360,7 +360,7 @@
   [m k1 k2]
   (-> m (assoc k1 (m k2)) (assoc k2 (m k1))))
 
-(defn vec*
+(defn vector*
   "Like `list*`, but returns a vector."
   [& args]
   (apply vector args))

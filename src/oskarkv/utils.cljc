@@ -7,7 +7,8 @@
    [clojure.math.numeric-tower :as math]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
-  #?(:clj (:import (java.util Random))))
+  #?(:clj (:import (java.util Random)))
+  (:use com.rpl.specter))
 
 ;;; Using macros defined here in later function definitions does not
 ;;; work when requiring from cljs. If you want to use a macro in a later
@@ -33,6 +34,28 @@
 (impl/defprivatedef def- `def)
 
 (impl/defprivatedef defmacro- `defmacro)
+
+(defn walker*
+  "Like `com.rpl.specter/walker`, but ignores exceptions in the given
+   function."
+  [f]
+  (walker #(ignore-exception (f %))))
+
+(defmacro recursive-map-search-path [args must-arg result-path]
+  `(recursive-path ~args p#
+     (cond-path [map? (must ~must-arg)] (multi-path ~result-path [ALL p#])
+                coll? [ALL p#]
+                STOP)))
+
+(def find-vals
+  "A specter navigator to recursively find the values of the given key in
+   a nested data structure."
+  (recursive-map-search-path [k] k k))
+
+(def maps-with
+  "A specter navigator to recursively find maps that contain the given key in
+   a nested data structure."
+  (recursive-map-search-path [k] k STAY))
 
 (defmacro defalias
   "Create a new var with the value of evaluating `target-symbol` in the

@@ -49,8 +49,6 @@
                 (list `defalias sym (symbol (name ns-sym) (name sym))))
               (filter (fn [[sym v]] (pred (name sym))) (ns-publics ns-sym))))))
 
-(defalias abs math/abs)
-
 (defalias invert-map set/map-invert)
 
 (defmacro condf

@@ -592,24 +592,18 @@
   [& colls]
   (apply set/intersection (map set colls)))
 
-(defn pred-union
-  "Returns a function f that returns true if and only if at least one
-   predicate given to `pred-union` returns true for the arguments given
-   to f. In other words, `pred-union` is similar to `some-fn`, but the
-   predicates are only called once each and get as input all arguments
-   passed to f."
-  [& ps]
+(defn some-multiarg-fn
+  "Returns a function f that returns the first logical true value of
+   applying the given functions `fs`, in order, to the args of f. Short
+   circuits like `some`."
+  [& fs]
   (fn [& args]
-    (some #(apply % args) ps)))
+    (some #(apply % args) fs)))
 
-(defn pred-intersection
-  "Returns a function f that returns true if and only if all predicates
-   given to `pred-intersection` return true for the arguments given to
-   f. The predicates are tested left to right, and f returns false as
-   soon as a predicate returns false. In other words,
-   `pred-intersection` is similar to `every-pred`, but the predicates
-   are only called once each and get as input all arguments passed to
-   f."
+(defn every-multiarg-pred
+  "Returns a function f that applies the given predicates `ps`, in order,
+   to the args of f and returns false if any of them returns logical
+   false, otherwise returns true. Short curcuits like `every?`."
   [& ps]
   (fn [& args]
     (every? #(apply % args) ps)))

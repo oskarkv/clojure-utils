@@ -41,21 +41,24 @@
   [f]
   (walker #(ignore-exception (f %))))
 
-(defmacro recursive-map-search-path [args must-arg result-path]
+(defmacro recursive-search-path [args must-arg result-path]
   `(recursive-path ~args p#
-     (cond-path [map? (must ~must-arg)] (multi-path ~result-path [ALL p#])
+     (cond-path [#((every-pred ifn? coll?) %) (must ~must-arg)]
+                (multi-path ~result-path [ALL p#])
                 coll? [ALL p#]
                 STOP)))
 
 (def find-vals
   "A specter navigator to recursively find the values of the given key in
-   a nested data structure."
-  (recursive-map-search-path [k] k k))
+   a nested data structure. The key can be a key into a any collection
+   that works as a function."
+  (recursive-search-path [k] k k))
 
-(def maps-with
-  "A specter navigator to recursively find maps that contain the given key in
-   a nested data structure."
-  (recursive-map-search-path [k] k STAY))
+(def structs-with
+  "A specter navigator to recursively find structures (any coll that works
+   as a function) that contain the given key in a nested data
+   structure."
+  (recursive-search-path [k] k STAY))
 
 (defmacro defalias
   "Create a new var with the value of evaluating `target-symbol` in the

@@ -118,8 +118,8 @@
 
 (defn parse-int
   "Parses a long with Long/parseLong."
-  ([x] (Long/parseLong x))
-  ([x radix] (Long/parseLong x radix)))
+  ([x] (#?(:clj Long/parseLong :cljs js/parseInt) x))
+  ([x radix] (#?(:clj Long/parseLong :cljs js/parseInt) x radix)))
 
 (defn sum
   "Sums the numbers in `nums`."

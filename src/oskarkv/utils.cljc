@@ -27,6 +27,15 @@
     {:style/indent 0}
     [& forms]
     `(try ~@forms (catch ~(if (:ns &env) :default 'Exception) ~'e nil)))
+  (defmacro defalias
+    "Create a new var with the value of evaluating `target-symbol` in the
+     current namespace, and copies the metadata of `target-symbol`'s var."
+    [alias-symbol target-symbol]
+    `(let [var# (var ~target-symbol)
+           target-thing# @var#
+           meta# (meta var#)]
+       (def ~alias-symbol target-thing#)
+       (reset-meta! (var ~alias-symbol) meta#)))
   (defmacro condf
     "Takes an object `obj` and zero or more test-fn/expr `pairs`.
      Evaluates (test-fn `obj`) for each pair in order, and returns the
@@ -73,16 +82,6 @@
    as a function) that contain the given key in a nested data
    structure."
   (recursive-search-path [k] k STAY))
-
-(defmacro defalias
-  "Create a new var with the value of evaluating `target-symbol` in the
-   current namespace, and copies the metadata of `target-symbol`'s var."
-  [alias-symbol target-symbol]
-  `(let [var# (var ~target-symbol)
-         target-thing# @var#
-         meta# (meta var#)]
-     (def ~alias-symbol target-thing#)
-     (reset-meta! (var ~alias-symbol) meta#)))
 
 (impl/defalias invert-map set/map-invert)
 

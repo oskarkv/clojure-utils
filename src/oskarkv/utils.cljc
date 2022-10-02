@@ -4,7 +4,6 @@
    [clojure.string :as str]
    [clojure.walk :as walk]
    [clojure.set :as set]
-   [clojure.math.numeric-tower :as math]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
   #?(:clj (:import (java.util Random)))
@@ -110,12 +109,12 @@
 (defn floor
   "Returns a the floor of `x` as a long."
   [x]
-  (long (math/floor x)))
+  (long (Math/floor x)))
 
 (defn ceil
   "Returns a the ceil of `x` as a long."
   [x]
-  (long (math/ceil x)))
+  (long (Math/ceil x)))
 
 (defn parse-int
   "Parses a long with Long/parseLong."

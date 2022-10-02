@@ -64,9 +64,11 @@
   "Create a new var with the value of evaluating `target-symbol` in the
    current namespace, and copies the metadata of `target-symbol`'s var."
   [alias-symbol target-symbol]
-    `(do (let [target-thing# @(var ~target-symbol)]
-       (def ~alias-symbol target-thing#)
-         (reset-meta! (var ~alias-symbol) (meta (var ~target-symbol))))))
+  `(let [var# (var ~target-symbol)
+         target-thing# @var#
+         meta# (meta var#)]
+     (def ~alias-symbol target-thing#)
+     (reset-meta! (var ~alias-symbol) meta#)))
 
 (defmacro use-names [ns-sym pred]
   (let [pred (eval pred)]

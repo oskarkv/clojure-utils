@@ -13,7 +13,22 @@
     "Evaluates `forms` and if an exception is thrown, instead return `nil`."
     {:style/indent 0}
     [& forms]
-    `(try ~@forms (catch ~(if (:ns &env) :default 'Exception) ~'e nil))))
+    `(try ~@forms (catch ~(if (:ns &env) :default 'Exception) ~'e nil)))
+  (defmacro condf
+    "Takes an object `obj` and zero or more test-fn/expr `pairs`.
+     Evaluates (test-fn `obj`) for each pair in order, and returns the
+     expr of the pair if the test-fn returns logical true. A single
+     default expression can follow the pairs, and its value will be
+     returned if no clause matches. If no pair matches and there is no
+     default expression, returns `nil`."
+    {:style/indent 1}
+    [obj & pairs]
+    (when pairs
+      (if (= (count pairs) 1)
+        (first pairs)
+        `(if (~(first pairs) ~obj)
+           ~(second pairs)
+           (condf ~obj ~@(next (next pairs))))))))
 
 (defn unqualify-syms
   "Returns `code` but where any occurrence of the symbols in `syms` has

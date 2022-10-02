@@ -1,8 +1,9 @@
 (ns oskarkv.utils.impl
   (:require
    [clojure.pprint :as pp]
+   [clojure.string :as str]
    [clojure.walk :as walk]
-   [clojure.string :as str]))
+   [com.rpl.specter :as s]))
 
 ;; WARNING: Definitions of the macros in this `do` block exist in both
 ;; src/utils.cljc and src/utils/impl.cljc , because they are both used
@@ -37,7 +38,13 @@
         (first pairs)
         `(if (~(first pairs) ~obj)
            ~(second pairs)
-           (condf ~obj ~@(next (next pairs))))))))
+           (condf ~obj ~@(next (next pairs)))))))
+  (defmacro recursive-search-path [args must-arg result-path]
+    `(s/recursive-path ~args p#
+       (s/cond-path [#((every-pred ifn? coll?) %) (s/must ~must-arg)]
+                  (s/multi-path ~result-path [s/ALL p#])
+                  coll? [s/ALL p#]
+                  s/STOP))))
 
 (defn unqualify-syms
   "Returns `code` but where any occurrence of the symbols in `syms` has

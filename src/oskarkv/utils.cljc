@@ -1,13 +1,13 @@
 (ns oskarkv.utils
   (:require
    [clojure.pprint :as pp]
+   [clojure.set :as set]
    [clojure.string :as str]
    [clojure.walk :as walk]
-   [clojure.set :as set]
+   [com.rpl.specter :as s]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
-  #?(:clj (:import (java.util Random)))
-  (:use com.rpl.specter))
+  #?(:clj (:import (java.util Random))))
 
 ;;; Using macros defined here in later function definitions does not
 ;;; work when requiring from cljs. If you want to use a macro in a later
@@ -50,7 +50,13 @@
         (first pairs)
         `(if (~(first pairs) ~obj)
            ~(second pairs)
-           (condf ~obj ~@(next (next pairs))))))))
+           (condf ~obj ~@(next (next pairs)))))))
+  (defmacro recursive-search-path [args must-arg result-path]
+    `(s/recursive-path ~args p#
+       (s/cond-path [#((every-pred ifn? coll?) %) (s/must ~must-arg)]
+                  (s/multi-path ~result-path [s/ALL p#])
+                  coll? [s/ALL p#]
+                  s/STOP))))
 
 (impl/define-ordinal-functions)
 
@@ -62,26 +68,19 @@
   "Like `com.rpl.specter/walker`, but ignores exceptions in the given
    function."
   [f]
-  (walker #(ignore-exception (f %))))
-
-(defmacro recursive-search-path [args must-arg result-path]
-  `(recursive-path ~args p#
-     (cond-path [#((every-pred ifn? coll?) %) (must ~must-arg)]
-                (multi-path ~result-path [ALL p#])
-                coll? [ALL p#]
-                STOP)))
+  (s/walker #(ignore-exception (f %))))
 
 (def find-vals
   "A specter navigator to recursively find the values of the given key in
    a nested data structure. The key can be a key into a any collection
    that works as a function."
-  (recursive-search-path [k] k k))
+  (impl/recursive-search-path [k] k k))
 
 (def structs-with
   "A specter navigator to recursively find structures (any coll that works
    as a function) that contain the given key in a nested data
    structure."
-  (recursive-search-path [k] k STAY))
+  (impl/recursive-search-path [k] k s/STAY))
 
 (impl/defalias invert-map set/map-invert)
 

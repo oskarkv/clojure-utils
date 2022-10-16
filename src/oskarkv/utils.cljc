@@ -538,6 +538,11 @@
   [m num]
   (select-keys m (take num (shuffle (keys m)))))
 
+(defn keys-of-val
+  "Returns a set of the keys in `m` that maps to `val`."
+  [m val]
+  (into #{} (map first) (filter #(= (% 1) val) m)))
+
 (defn derive-many
   "Derive all elements of `coll` from `parent` in hierarchy `h`, or the
    global hierarchy if `h` is not provided."

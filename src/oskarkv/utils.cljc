@@ -380,7 +380,7 @@
 (defn vector*
   "Like `list*`, but returns a vector."
   [& args]
-  (apply vector args))
+  (apply apply vector args))
 
 (defn reductions*
   "Like `reductions`, but returns nil if coll is empty, instead of a seq

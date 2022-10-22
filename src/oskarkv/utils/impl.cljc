@@ -117,11 +117,11 @@
        ~@(for [n regular :let [ord (ordinal n)]]
            `(defn ~(symbol ord)
               ~(str "Gets the " ord " element from a collection.")
-              [~'x]
-              (nth ~'x ~n)))
+              [~'coll]
+              (nth ~'coll ~n)))
        ~@(for [n vs :let [ord (ordinal n)]]
            `(defn ~(symbol (str ord "v"))
               ~(str "Gets the " ord " element from a vector. Faster than `"
                     ord "`.")
-              [~'x]
-              (~'x ~n))))))
+              [~'v]
+              (~'v ~n))))))

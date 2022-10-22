@@ -312,7 +312,7 @@
 
 (defn avg
   "Returns the average of `nums`."
-  [& nums]
+  [nums]
   (/ (sum nums) (count nums)))
 
 (letfn [(rec [parents-fn xs]

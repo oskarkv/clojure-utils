@@ -160,6 +160,20 @@
   [coll]
   (map-indexed vector coll))
 
+(let [t (fn [f]
+          #(try (f %)
+             (catch #?(:clj Exception :cljs js/Error) e %)))]
+  (defn postwalk*
+    "Like clojure.walk/postwalk but when `f` throws an error, `f` instead
+     acts like `identity`."
+    [f form]
+    (walk/postwalk (t f) form))
+  (defn prewalk*
+    "Like clojure.walk/prewalk but when `f` throws an error, `f` instead
+     acts like `identity`."
+    [f form]
+    (walk/prewalk (t f) form)))
+
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were

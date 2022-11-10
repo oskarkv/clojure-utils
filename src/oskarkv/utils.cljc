@@ -316,6 +316,24 @@
   [x]
   (pp/pprint x) (println) x)
 
+(defn splitr
+  "Like clojure.string.split but splits from the right."
+  ([s re]
+   (str/split s re))
+  ([s re limit]
+   (if (<= limit 0)
+     (str/split s re)
+     (let [joins (re-seq re s)
+           splits (str/split s re)
+           n (count splits)
+           limit (min limit n)
+           replace-count (- (count splits) limit)]
+       (if (== limit n)
+         (str/split s re)
+         (into [(interleave-str (take (inc replace-count) splits)
+                                (concat (take replace-count joins) [""]))]
+               (take-last (dec limit) splits)))))))
+
 (defn sign
   "Returns 1 for positive numbers, -1 for negative numbers, and 0 for 0."
   [x]

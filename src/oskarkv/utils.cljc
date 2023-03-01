@@ -246,6 +246,7 @@
   mapv]
  butlast
  concat
+ cons
  dedupe
  distinct
  drop

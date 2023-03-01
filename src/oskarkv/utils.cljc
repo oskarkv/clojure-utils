@@ -97,12 +97,12 @@
   (first (filter pred coll)))
 
 (defn floor
-  "Returns a the floor of `x` as a long."
+  "Returns the floor of `x` as a long."
   [x]
   (long (Math/floor x)))
 
 (defn ceil
-  "Returns a the ceil of `x` as a long."
+  "Returns the ceil of `x` as a long."
   [x]
   (long (Math/ceil x)))
 
@@ -124,7 +124,7 @@
 
 (defn fmap
   "Applies `f` to the vals in `m` and returns a map. If `colls` are
-   provided,applies `f` to the vals in `m` and the items from `colls` in
+   provided, applies `f` to the vals in `m` and the items from `colls` in
    parallel, as with `clojure.core/map`, but keep in mind that the order
    of the map elements is unreliable."
   ([f m] (into {} (map (fn [[k v]] [k (f v)])) m))

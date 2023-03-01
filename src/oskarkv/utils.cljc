@@ -142,7 +142,7 @@
   "Like `keep`, but can take more than one coll, similar to `map`."
   ([f] (keep f))
   ([f coll] (keep f coll))
-  ([f coll & colls]  (remove nil? (apply map f coll colls))))
+  ([f coll & colls] (apply sequence (comp (map f) (remove nil?)) coll colls)))
 
 (defn flatten-all
   "Like `flatten`, but also flattens sets and maps."

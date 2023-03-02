@@ -1154,41 +1154,35 @@
                ~~@body))))
 
      (defmacro! with-indented-printlns
-       "Modifies `defn` and `fn` forms under this macro so that `println` in
-        the `defn` and `fn` forms prints with an indentation depending on how
-        deep the call is, i.e. recursive calls will print with a greater
-        indent, for example."
+       "Let binds `println` to a function that is like regular `println`, but
+        prints with an indent. The indent increases each time a function f is
+        called and decreases when f returns, iff f was created in the code
+        wrapped by a call to this macro such that it eventually (after
+        macroexpansion) turns into an `fn*` form."
        {:style/indent 0}
        [& code]
-       (letfn [(handle-form [n form]
-                 (let [before (take n form)
-                       body (drop n form)]
-                   (concat before
-                           `((swap! ~g!depth inc)
-                             (let [r# (do ~@body)]
-                               (swap! ~g!depth dec)
-                               r#)))))]
+       (letfn [(handle-fn* [[_ & clauses]]
+                 (list* 'fn* (map (fn [[args & body]]
+                                    (cons args `((vswap! ~g!depth inc)
+                                                 (let [r# (do ~@body)]
+                                                   (vswap! ~g!depth dec)
+                                                   r#))))
+                                  clauses)))]
          (unqualify-syms [args]
-           `(let [~g!depth (atom -1)
+           `(let [~g!depth (volatile! -1)
                   ~'println (fn [& args]
                               (println
                                (apply str (apply str (repeat @~g!depth "  "))
                                       (interpose " " args))))]
               ~@(walk/postwalk
                  (fn [form]
-                   (if (list? form)
-                     (condp = (first form)
-                       'defn (handle-form
-                              (if (string? (third form))
-                                4 3)
-                              form)
-                       'fn (handle-form
-                            (if (symbol? (second form))
-                              3 2)
-                            form)
-                       form)
+                   (if (and (seq? form) (= 'fn* (first form)))
+                     (handle-fn* (if (vector? (second form))
+                                   (list 'fn* (rest form))
+                                   form))
                      form))
-                 code)))))
+                 ;; Expand macros first, so we only have to deal with fn* forms.
+                 (walk/prewalk macroexpand code))))))
 
      (defmacro log-fn-io
        "Replace the function named in its var with a function that wraps it,

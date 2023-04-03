@@ -568,9 +568,8 @@
 
 (defn replace-keys
   "For any key in `m`, replaces it with (`rmap` key) if it exists in `rmap`."
-  [rmap m]
-  (let [ks (keys m) vs (vals m)]
-    (zipmap (replace rmap ks) vs)))
+  [m rmap]
+  (zipmap (replace rmap (keys m)) (vals m)))
 
 (defn select-random-keys
   "Returns a map with `num` mappings from `m`, selected randomly."

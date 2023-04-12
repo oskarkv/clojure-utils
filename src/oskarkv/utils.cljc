@@ -1152,6 +1152,34 @@
             `(let [~~@(interleave gs os)]
                ~~@body))))
 
+     (defmacro! print-intermediate-results [& body]
+       (letfn [(printer [real-exp original-exp]
+                 `(let ~[g!r real-exp]
+                    (println '~original-exp " = "
+                             (if (lazy-seq? ~g!r)
+                               (apply list (take 20 ~g!r))
+                               ~g!r))
+                    ~g!r))
+               (print-sym [sym]
+                 (if (and (symbol? sym) (not (resolve sym)))
+                   (printer sym sym)
+                   sym))
+               (walk-expr [exp]
+                 (cond (vector? exp) (mapv walk-expr exp)
+                       (map? exp) (into {} (map walk-expr exp))
+                       (sequential? exp)
+                       (cond (some #{'recur} (flatten exp))
+                             (map walk-expr exp)
+                             (= 'case (first exp))
+                             exp
+                             :else (let [i (map walk-expr exp)]
+                                     (printer
+                                      (cons (first i) (map print-sym (rest i)))
+                                      exp)))
+                       :else exp))]
+         `(binding [*print-length* 5]
+            (do ~@(map walk-expr body)))))
+
      (defmacro! with-indented-printlns
        "Let binds `println` to a function that is like regular `println`, but
         prints with an indent. The indent increases each time a function f is

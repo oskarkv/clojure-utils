@@ -84,6 +84,11 @@
 
 (impl/defalias invert-map set/map-invert)
 
+(defn scalar?
+  "The complement of `coll?`."
+  [x]
+  (not (coll? x)))
+
 (defn empty*
   "Like `clojure.core/empty`, but returns a vector instead of a list for
    MapEntries."

@@ -116,6 +116,11 @@
   [nums]
   (reduce + nums))
 
+(defn product
+  "Returns the product of the numbers in `nums`."
+  [nums]
+  (reduce * nums))
+
 (defn normalize
   "Returns a sequence where each number in `nums` has been divided by
    the absolute value of the sum of `nums`."

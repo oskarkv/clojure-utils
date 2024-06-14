@@ -84,6 +84,12 @@
 
 (impl/defalias invert-map set/map-invert)
 
+(defn empty*
+  "Like `clojure.core/empty`, but returns a vector instead of a list for
+   MapEntries."
+  [coll]
+  (if (instance? clojure.lang.MapEntry coll) [] (empty coll)))
+
 (defmacro condp*
   "Like `condp` but the predicate takes the arguments in the reverse
    order."

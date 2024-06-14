@@ -185,6 +185,34 @@
     [f form]
     (walk/prewalk (t f) form)))
 
+(let [reducer (fn [walker f state tree]
+                (reduce
+                 (fn [[state replacement] node]
+                   (let [[state* node*] (walker f state node)]
+                     [state* (conj replacement node*)]))
+                 [state (empty* tree)]
+                 tree))]
+  (defn postwalk-with-state
+    "Like `clojure.walk/postwalk` except f takes two args, a state and a tree,
+     and should output a new state and a new tree. As the tree is
+     walked, each time f is called the last state is passed to it. `state`
+     is the initial state."
+    [f state tree]
+    (if (coll? tree)
+      (let [[s t] (reducer postwalk-with-state f state tree)]
+        (f s (if (seq? t) (reverse t) t)))
+      (f state tree)))
+  (defn prewalk-with-state
+    "Like `clojure.walk/prewalk` except `f` takes two args, a state and a tree,
+     and should output a new state and a new tree. As the tree is
+     walked, each time f is called the last state is passed to it. `state`
+     is the initial state."
+    [f state tree]
+    (let [[new-state new-tree] (f state tree)]
+      (if (coll? new-tree)
+        (reducer prewalk-with-state f new-state new-tree)
+        [new-state new-tree]))))
+
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were

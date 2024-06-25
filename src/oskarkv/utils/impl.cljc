@@ -46,17 +46,6 @@
                   coll? [s/ALL p#]
                   s/STOP))))
 
-(defn unqualify-syms
-  "Returns `code` but where any occurrence of the symbols in `syms` has
-   been unqualified."
-  [syms code]
-  (walk/postwalk
-   #(if (and (symbol? %)
-             (some #{(name %)} (set (map name syms))))
-      (symbol (name %))
-      %)
-   code))
-
 (defmacro reversed-reductions
   "Returns a function that is like a `reductions`-like `base-fn`, but
    reduces from right to left."

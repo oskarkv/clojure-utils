@@ -480,6 +480,11 @@
   [pred coll]
   (first (keep-indexed (fn [i val] (when (pred val) i)) coll)))
 
+(defn first-el-index
+  "Returns the index of the first `x` in `coll`."
+  [x coll]
+  (first (keep-indexed (fn [i val] (when (= x val) i)) coll)))
+
 (defn infinite-shuffle
   "Returns the concatenation of (shuffle `coll`) and (infinite-shuffle
    `coll`)."

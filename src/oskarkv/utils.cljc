@@ -967,16 +967,15 @@
               (->> (map #(struct-kinds pred %) structs)
                 (apply combine #(first %&)))))))
 
-(defn unqualify-syms*
-  "Returns `code` but where any occurrence of the symbols in `syms` has
-   been unqualified."
-  [syms code]
+(defn unqualify-all
+  "Returns `tree` but where every qualified symbol or keyword has been
+   unqualified."
+  [tree]
   (walk/postwalk
-   #(if (and (symbol? %)
-             (contains? (set (map name syms)) (name %)))
-      (symbol (name %))
-      %)
-   code))
+   #(cond (qualified-symbol? %) (symbol (name %))
+          (qualified-keyword? %) (keyword (name %))
+          :else %)
+   tree))
 
 (defmacro while-let
   "Syntax: (while-let [form expr] body). Evaluate expr each iteration. If
@@ -1146,7 +1145,7 @@
         been unqualified."
        {:style/indent 1}
        [syms code]
-       (unqualify-syms* syms code))
+       (impl/unqualify-syms* syms code))
 
      (defmacro with-gensyms
        "Let binds the symbols in `syms` to gensyms around `body`."

@@ -496,6 +496,13 @@
   [coll]
   (lazy-cat (shuffle coll) (infinite-shuffle coll)))
 
+(defn infinite-random-seq
+  "Returns a lazy seq of elements taken randomly from `coll`."
+  [coll]
+  (let [v (vec coll)
+        n (count v)]
+    (repeatedly #(nth v (rand-int n)))))
+
 (letfn [(all-pairs* [f]
           (fn [coll]
             (loop [pairs #{} left coll]

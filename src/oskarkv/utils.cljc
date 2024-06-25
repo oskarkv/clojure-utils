@@ -89,6 +89,11 @@
   [x]
   (not (coll? x)))
 
+(defn array?
+  "Returns `true` if `x` is a Java array."
+  [x]
+  (.isArray (class x)))
+
 (defn empty*
   "Like `clojure.core/empty`, but returns a vector instead of a list for
    MapEntries."

@@ -72,7 +72,7 @@
 
 (def find-vals
   "A specter navigator to recursively find the values of the given key in
-   a nested data structure. The key can be a key into a any collection
+   a nested data structure. The key can be a key into any collection
    that works as a function."
   (impl/recursive-search-path [k] k k))
 

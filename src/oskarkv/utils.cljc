@@ -28,8 +28,9 @@
     [& forms]
     `(try ~@forms (catch ~(if (:ns &env) :default 'Exception) ~'e nil)))
   (defmacro defalias
-    "Create a new var with the value of evaluating `target-symbol` in the
-     current namespace, and copies the metadata of `target-symbol`'s var."
+    "Create a new var, with the value of derefing the var named by
+     `target-symbol`, in the current namespace, and copies the metadata of
+     `target-symbol`'s var."
     [alias-symbol target-symbol]
     `(let [var# (var ~target-symbol)
            target-thing# @var#

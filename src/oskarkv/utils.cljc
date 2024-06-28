@@ -54,9 +54,9 @@
   (defmacro recursive-search-path [args must-arg result-path]
     `(s/recursive-path ~args p#
        (s/cond-path [#((every-pred ifn? coll?) %) (s/must ~must-arg)]
-                  (s/multi-path ~result-path [s/ALL p#])
-                  coll? [s/ALL p#]
-                  s/STOP))))
+                    (s/multi-path ~result-path [s/ALL p#])
+                    coll? [s/ALL p#]
+                    s/STOP))))
 
 (impl/define-ordinal-functions)
 

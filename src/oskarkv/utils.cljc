@@ -311,6 +311,7 @@
  iterate-some
  keep
  keeps
+ keys
  map
  map-indexed
  mapcat
@@ -331,6 +332,7 @@
  take-while
  take-while-pairs
  uneven-interleave
+ vals
  zip)
 
 (defn lastv

@@ -148,11 +148,11 @@
   [nums]
   (reduce * nums))
 
-(defn normalize
+(defn normalize-by-sum
   "Returns a sequence where each number in `nums` has been divided by
-   the absolute value of the sum of `nums`."
+   the sum of the elements in `nums`."
   [nums]
-  (map * nums (repeat (/ (abs (sum nums))))))
+  (map #(/ % (sum nums)) nums))
 
 (defn fmap
   "Applies `f` to the vals in `m` and returns a map. If `colls` are
@@ -326,7 +326,7 @@
  map
  map-indexed
  mapcat
- normalize
+ normalize-by-sum
  pair-cycle
  range
  remove

@@ -807,8 +807,8 @@
   "Returns a random number between `min` and `max`, with `min` and `max`
    defaulting to 0 and 1 respectively."
   ([] (rand))
-  ([max] (* max (rand)))
-  ([min max] (+ min (* (rand) (- max min)))))
+  ([max] (rand max))
+  ([min max] (+ min (rand (- max min)))))
 
 (defn rand-uniform-int
   "Returns a random integer between `min` and `max`, both inclusive.

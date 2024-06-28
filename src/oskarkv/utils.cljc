@@ -4,6 +4,7 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.walk :as walk]
+   [clojure.tools.macro :as m]
    [com.rpl.specter :as s]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
@@ -69,6 +70,12 @@
                          (keys (ns-publics (the-ns namespace-symbol))))]
          (list `defalias sym (symbol (str namespace-symbol) (str sym))))))
 
+(defalias pprint pp/pprint)
+
+(defalias invert-map set/map-invert)
+
+(alias-everything clojure.tools.macro)
+
 (impl/define-ordinal-functions)
 
 (impl/defprivatedef def- `def)
@@ -92,8 +99,6 @@
    as a function) that contain the given key in a nested data
    structure."
   (impl/recursive-search-path [k] k s/STAY))
-
-(impl/defalias invert-map set/map-invert)
 
 (defn scalar?
   "The complement of `coll?`."
@@ -366,8 +371,6 @@
   "Calls `tap>` on `x` and returns `x`."
   [x]
   (tap> x) x)
-
-(impl/defalias pprint pp/pprint)
 
 (defn pprintit
   "Pprints `x` and returns `x`."

@@ -59,6 +59,16 @@
                     coll? [s/ALL p#]
                     s/STOP))))
 
+(defmacro alias-everything
+  "Alias everything, except for symbols in `exclude` from the given
+   namespace into the current namespace."
+  {:style/indent 1}
+  [namespace-symbol & exclude]
+  `(do
+     ~@(for [sym (remove (set exclude)
+                         (keys (ns-publics (the-ns namespace-symbol))))]
+         (list `defalias sym (symbol (str namespace-symbol) (str sym))))))
+
 (impl/define-ordinal-functions)
 
 (impl/defprivatedef def- `def)

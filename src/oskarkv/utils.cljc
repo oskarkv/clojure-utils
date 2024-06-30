@@ -367,8 +367,10 @@
   "Like mapv, but returns a set."
   ([f coll]
    (into #{} (map f) coll))
-  ([f coll & more]
-   (into #{} (apply map f coll more))))
+  ([f c1 c2]
+   (into #{} (map f c1 c2)))
+  ([f c1 c2 & more]
+   (into #{} (apply map f c1 c2 more))))
 
 (defn filters
   "Returns a set of the items in coll for which (pred item) returns

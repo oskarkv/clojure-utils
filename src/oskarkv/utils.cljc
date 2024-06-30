@@ -325,6 +325,12 @@
   ([coll1 coll2 & more]
    (apply mapv vector coll1 coll2 more)))
 
+(defn removev
+  "Returns a vector of the items in coll for which (pred item) returns
+   logical false. pred must be free of side-effects."
+  [pred coll]
+  (filterv (complement pred) coll))
+
 (defn iterate-some
   "Like `iterate`, but stops when `f` returns nil."
   [f x]
@@ -386,6 +392,7 @@
 (impl/make-v-and-str-fns
  [filterv
   mapv
+  removev
   zipv]
  butlast
  concat

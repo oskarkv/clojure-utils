@@ -331,6 +331,26 @@
   [pred coll]
   (filterv (complement pred) coll))
 
+(defn keysv
+  "Returns a vector of the keys of m."
+  [m]
+  (into [] (map firstv) m))
+
+(defn valsv
+  "Returns a vector of the values of m."
+  [m]
+  (into [] (map secondv) m))
+
+(defn keyss
+  "Returns a set of the keys of m."
+  [m]
+  (into #{} (map firstv) m))
+
+(defn valss
+  "Returns a set of the values of m."
+  [m]
+  (into #{} (map secondv) m))
+
 (defn maps
   "Like mapv, but returns a set."
   ([f coll]
@@ -414,8 +434,10 @@
 
 (impl/make-v-and-str-fns
  [filterv
+  keysv
   mapv
   removev
+  valsv
   zipv]
  butlast
  concat

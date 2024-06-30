@@ -92,6 +92,12 @@
   [f]
   (s/walker #(ignore-exception (f %))))
 
+(defn codewalker*
+  "Like `com.rpl.specter/codewalker`, but ignores exceptions in the given
+   function."
+  [f]
+  (s/codewalker #(ignore-exception (f %))))
+
 (def find-vals
   "A specter navigator to recursively find the values of the given key in
    a nested data structure. The key can be a key into any collection

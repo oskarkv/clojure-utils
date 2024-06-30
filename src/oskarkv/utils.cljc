@@ -325,14 +325,14 @@
 (defn filters
   "Returns a set of the items in coll for which (pred item) returns
    logical true. pred must be free of side-effects."
-  ([f coll]
-   (into #{} (filter f) coll)))
+  ([pred coll]
+   (into #{} (filter pred) coll)))
 
 (defn removes
   "Returns a set of the items in coll for which (pred item) returns
    logical false. pred must be free of side-effects."
-  ([f coll]
-   (into #{} (remove f) coll)))
+  ([pred coll]
+   (into #{} (remove pred) coll)))
 
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the

@@ -667,7 +667,7 @@
   "Like `conj`, but turns the collection into a vector first."
   ([] [])
   ([coll & args]
-   (apply conj (vec coll) args)))
+   (into (vec coll) args)))
 
 (defn conj-some
   "Conjes `x` onto `coll` iff `x` is not nil."

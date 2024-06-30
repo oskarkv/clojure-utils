@@ -331,6 +331,29 @@
   [pred coll]
   (filterv (complement pred) coll))
 
+(defn maps
+  "Like mapv, but returns a set."
+  ([f coll]
+   (into #{} (map f) coll))
+  ([f coll & more]
+   (into #{} (apply map f coll more))))
+
+(defn filters
+  "Like filterv, but returns a set."
+  ([f coll]
+   (into #{} (filter f) coll)))
+
+(defn removes
+  "Like removev, but returns a set."
+  ([f coll]
+   (into #{} (remove f) coll)))
+
+(defn zips
+  "Like zipv, but returns a set."
+  ([coll1 coll2] (maps vector coll1 coll2))
+  ([coll1 coll2 & more]
+   (apply maps vector coll1 coll2 more)))
+
 (defn iterate-some
   "Like `iterate`, but stops when `f` returns nil."
   [f x]

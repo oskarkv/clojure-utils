@@ -309,6 +309,31 @@
         (reducer prewalk-with-state f new-state new-tree)
         [new-state new-tree]))))
 
+(defn removev
+  "Returns a vector of the items in coll for which (pred item) returns
+   logical false. pred must be free of side-effects."
+  [pred coll]
+  (filterv (complement pred) coll))
+
+(defn maps
+  "Like mapv, but returns a set."
+  ([f coll]
+   (into #{} (map f) coll))
+  ([f coll & more]
+   (into #{} (apply map f coll more))))
+
+(defn filters
+  "Returns a set of the items in coll for which (pred item) returns
+   logical true. pred must be free of side-effects."
+  ([f coll]
+   (into #{} (filter f) coll)))
+
+(defn removes
+  "Returns a set of the items in coll for which (pred item) returns
+   logical false. pred must be free of side-effects."
+  ([f coll]
+   (into #{} (remove f) coll)))
+
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were
@@ -325,11 +350,13 @@
   ([coll1 coll2 & more]
    (apply mapv vector coll1 coll2 more)))
 
-(defn removev
-  "Returns a vector of the items in coll for which (pred item) returns
-   logical false. pred must be free of side-effects."
-  [pred coll]
-  (filterv (complement pred) coll))
+(defn zips
+  "Returns a set of vectors, where the i:th vector contains the
+   i:th elements of the arguments, in the order the arguments were
+   given."
+  ([coll1 coll2] (maps vector coll1 coll2))
+  ([coll1 coll2 & more]
+   (apply maps vector coll1 coll2 more)))
 
 (defn keysv
   "Returns a vector of the keys of m."
@@ -350,29 +377,6 @@
   "Returns a set of the values of m."
   [m]
   (into #{} (map secondv) m))
-
-(defn maps
-  "Like mapv, but returns a set."
-  ([f coll]
-   (into #{} (map f) coll))
-  ([f coll & more]
-   (into #{} (apply map f coll more))))
-
-(defn filters
-  "Like filterv, but returns a set."
-  ([f coll]
-   (into #{} (filter f) coll)))
-
-(defn removes
-  "Like removev, but returns a set."
-  ([f coll]
-   (into #{} (remove f) coll)))
-
-(defn zips
-  "Like zipv, but returns a set."
-  ([coll1 coll2] (maps vector coll1 coll2))
-  ([coll1 coll2 & more]
-   (apply maps vector coll1 coll2 more)))
 
 (defn iterate-some
   "Like `iterate`, but stops when `f` returns nil."

@@ -734,7 +734,7 @@
 (defn keys-of-val
   "Returns a set of the keys in `m` that maps to `val`."
   [m val]
-  (into #{} (map first) (filter #(= (% 1) val) m)))
+  (into #{} (comp (filter #(= (% 1) val)) (map first)) m))
 
 (defn derive-many
   "Derive all elements of `coll` from `parent` in hierarchy `h`, or the

@@ -1,5 +1,6 @@
 {:deps
  {org.clojure/clojure {:mvn/version "1.11.1"}
   com.rpl/specter {:mvn/version "1.1.4"}
-  tools.macro/tools.macro {:local/root "/home/oskar/code/tools.macro"}}
+  tools.macro/tools.macro {:local/root "/home/oskar/code/tools.macro"}
+  fipp/fipp {:mvn/version "0.6.26"}}
   :source-paths ["src"]}

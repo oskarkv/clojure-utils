@@ -1,6 +1,6 @@
 (ns oskarkv.utils
   (:require
-   [clojure.pprint :as pp]
+   [fipp.edn :as pp]
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.walk :as walk]

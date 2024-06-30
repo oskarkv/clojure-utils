@@ -227,7 +227,7 @@
   "Returns a sequence where each number in `nums` has been divided by
    the sum of the elements in `nums`."
   [nums]
-  (map #(/ % (sum nums)) nums))
+  (mapv #(/ % (sum nums)) nums))
 
 (defn fmap
   "Applies `f` to the vals in `m` and returns a map. If `colls` are

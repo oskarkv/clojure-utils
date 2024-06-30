@@ -74,6 +74,10 @@
 
 (defalias invert-map set/map-invert)
 
+(defalias postwalk walk/postwalk)
+
+(defalias prewalk walk/prewalk)
+
 (alias-everything clojure.tools.macro)
 
 (impl/define-ordinal-functions)

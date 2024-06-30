@@ -351,8 +351,7 @@
   ([pred coll]
    (lazy-seq
     (when-let [[a b :as s] (seq coll)]
-      (if (and (not (empty? (rest s)))
-               (pred a b))
+      (if (and (next s) (pred a b))
         (cons a (take-while-pairs pred (rest s)))
         (list a)))))
   ([keyfn pred coll]

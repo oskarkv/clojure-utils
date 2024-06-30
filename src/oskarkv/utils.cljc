@@ -1079,11 +1079,9 @@
   "Returns `tree` but where every qualified symbol or keyword has been
    unqualified."
   [tree]
-  (walk/postwalk
-   #(cond (qualified-symbol? %) (symbol (name %))
-          (qualified-keyword? %) (keyword (name %))
-          :else %)
-   tree))
+  (s/transform (codewalker* (some-fn qualified-symbol? qualified-keyword?))
+               #((if (symbol? %) symbol keyword) (name %))
+               tree))
 
 (defmacro while-let
   "Syntax: (while-let [form expr] body). Evaluate expr each iteration. If

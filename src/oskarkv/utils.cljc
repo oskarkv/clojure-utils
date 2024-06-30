@@ -4,7 +4,7 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.walk :as walk]
-   [clojure.tools.macro :as m]
+   [clojure.tools.macro]
    [com.rpl.specter :as s]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))

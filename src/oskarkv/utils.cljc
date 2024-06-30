@@ -382,6 +382,20 @@
   ([pred coll]
    (into #{} (remove pred) coll)))
 
+(defn mapcatv
+  "Like mapcat, but returns a vector."
+  ([f coll]
+   (into [] (mapcat f) coll))
+  ([f coll & more]
+   (apply into* [] (mapcat f) coll more)))
+
+(defn mapcats
+  "Like mapcat, but returns a set."
+  ([f coll]
+   (into #{} (mapcat f) coll))
+  ([f coll & more]
+   (apply into* #{} (mapcat f) coll more)))
+
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were
@@ -487,6 +501,7 @@
 (impl/make-v-and-str-fns
  [filterv
   keysv
+  mapcatv
   mapv
   removev
   valsv

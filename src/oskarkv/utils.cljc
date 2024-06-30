@@ -317,6 +317,14 @@
   ([coll1 coll2 & more]
    (apply map vector coll1 coll2 more)))
 
+(defn zipv
+  "Returns a vector of vectors, where the i:th vector contains the
+   i:th elements of the arguments, in the order the arguments were
+   given."
+  ([coll1 coll2] (mapv vector coll1 coll2))
+  ([coll1 coll2 & more]
+   (apply mapv vector coll1 coll2 more)))
+
 (defn iterate-some
   "Like `iterate`, but stops when `f` returns nil."
   [f x]
@@ -378,7 +386,8 @@
 
 (impl/make-v-and-str-fns
  [filterv
-  mapv]
+  mapv
+  zipv]
  butlast
  concat
  cons

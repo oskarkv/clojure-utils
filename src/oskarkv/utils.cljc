@@ -519,10 +519,10 @@
 
 (defn assoc-ins
   "Like `assoc-in`, but can take more path-value pairs."
-  [m & path-val-pairs]
-  (if-let [[path val] (seq (take 2 path-val-pairs))]
-    (apply assoc-ins (assoc-in m path val) (drop 2 path-val-pairs))
-    m))
+  ([m ks v] (assoc-in m ks v))
+  ([m ks v & kvs]
+   (cond->$ (assoc-in m ks v)
+     kvs (apply assoc-ins $ kvs))))
 
 (defn move-in
   "Moves the value in an associative structure `m` at `from-path` (a

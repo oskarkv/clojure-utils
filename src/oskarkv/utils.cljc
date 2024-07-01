@@ -828,7 +828,7 @@
 (defn vectorize
   "Turns all sequences in `form` into vectors."
   [form]
-  (walk/postwalk (fn [form] (if (seq? form) (vec form) form)) form))
+  (s/transform (s/walker seq?) vec form))
 
 (defn reject-indices
   "Returns a vector that is like `coll` but with the elements at `indices`

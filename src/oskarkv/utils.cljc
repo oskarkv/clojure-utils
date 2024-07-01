@@ -830,6 +830,11 @@
   [form]
   (s/transform (s/walker seq?) vec form))
 
+(defn vectorize-all
+  "Turns all collections in `form` into vectors."
+  [form]
+  (s/transform (s/walker coll?) vec form))
+
 (defn reject-indices
   "Returns a vector that is like `coll` but with the elements at `indices`
    removed."

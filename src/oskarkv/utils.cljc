@@ -282,7 +282,7 @@
    provided, applies `f` to the vals in `m` and the items from `colls` in
    parallel, as with `clojure.core/map`, but keep in mind that the order
    of the map elements is unreliable."
-  ([f m] (into {} (map (fn [[k v]] [k (f v)])) m))
+  ([f m] (update-vals m f))
   ([f m & colls] (zipmap (keys m) (apply map f (vals m) colls))))
 
 (defn kmap
@@ -290,7 +290,7 @@
    provided,applies `f` to the keys in `m` and the items from `colls` in
    parallel, as with `clojure.core/map`, but keep in mind that the order
    of the map elements is unreliable."
-  ([f m] (into {} (map (fn [[k v]] [(f k) v])) m))
+  ([f m] (update-keys m f))
   ([f m & colls] (zipmap (apply map f (keys m) colls) (vals m))))
 
 (defn keeps

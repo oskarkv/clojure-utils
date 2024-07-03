@@ -1,10 +1,11 @@
 (ns oskarkv.utils
   (:require
    [fipp.edn :as pp]
+   [clojure.math :as math]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.walk :as walk]
    [clojure.tools.macro]
+   [clojure.walk :as walk]
    [com.rpl.specter :as s]
    #?(:clj [oskarkv.utils.impl :as impl]
       :cljs [oskarkv.utils.impl :as impl :include-macros true]))
@@ -704,6 +705,12 @@
   "Returns the index of the first `x` in `coll`."
   [x coll]
   (first (keep-indexed (fn [i val] (when (= x val) i)) coll)))
+
+(defn random-elements
+  "Returns `ratio` of the elements in `elements`, randomly."
+  [ratio elements]
+  (takev (math/round (* ratio (count elements)))
+         (shuffle elements)))
 
 (defn infinite-shuffle
   "Returns the concatenation of (shuffle `coll`) and (infinite-shuffle

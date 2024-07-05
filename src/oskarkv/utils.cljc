@@ -147,6 +147,30 @@
 
 (impl/defprivatedef defmacro- `defmacro)
 
+(defn pcomp
+  "Like `clojure.core/comp`, but if an argument is a vector with `ifn?`
+   elements, then applies `juxt` on the collection, and applies the next
+   (left) function to the result. Example: ((pcomp + [inc dec]) 2) is
+   essentially (+ (inc 2) (dec 2)). A vector can, of course, be used as
+   a function itself, so if you want to use a vector (that has `ifn?`
+   elements) as a function you can wrap it in another vector."
+  ([] identity)
+  ([f] (if (and (vector? f) (every? ifn? f))
+         (apply juxt f)
+         f))
+  ([f g & hs]
+   (let [pcomp2 (fn [f g]
+                  (let [v (and (vector? g) (every? ifn? g))
+                        g (if v (apply juxt g) g)
+                        f (if v #(apply f %) f)]
+                    (fn
+                      ([] (f (g)))
+                      ([x] (f (g x)))
+                      ([x y] (f (g x y)))
+                      ([x y z] (f (g x y z)))
+                      ([x y z & args] (f (apply g x y z args))))))]
+     (reduce pcomp2 (pcomp f) (list* g hs)))))
+
 (defn transduce*
   "Like transduce, but can take multiple collections (and the xform are
    supposed to accept multiple values)."

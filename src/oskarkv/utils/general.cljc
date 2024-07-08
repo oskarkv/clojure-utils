@@ -1011,6 +1011,17 @@
          ~@body))
     `(do ~@body)))
 
+(defmacro when-somes
+  "Like `when-some` but can take multiple bindings. Evaluates body if
+   every binding is truthy."
+  {:style/indent 1}
+  [bindings & body]
+  (if (seq bindings)
+    `(when-some ~(subvec bindings 0 2)
+       (when-somes ~(subvec bindings 2)
+         ~@body))
+    `(do ~@body)))
+
 (defmacro if-lets
   "Like `if-let` but can take multiple bindings. Evaluates the `then`
    branch if every binding is truthy, else the `else` branch."
@@ -1021,6 +1032,21 @@
    (if (seq bindings)
      `(if-let ~(subvec bindings 0 2)
         (if-lets ~(subvec bindings 2)
+          ~then
+          ~else)
+        ~else)
+     then)))
+
+(defmacro if-somes
+  "Like `if-some` but can take multiple bindings. Evaluates the `then`
+   branch if every binding is nonnil, else the `else` branch."
+  {:style/indent 1}
+  ([bindings then]
+   `(if-somes ~bindings ~then))
+  ([bindings then else]
+   (if (seq bindings)
+     `(if-some ~(subvec bindings 0 2)
+        (if-somes ~(subvec bindings 2)
           ~then
           ~else)
         ~else)

@@ -1015,14 +1015,16 @@
   "Like `if-let` but can take multiple bindings. Evaluates the `then`
    branch if every binding is truthy, else the `else` branch."
   {:style/indent 1}
-  [bindings then else]
-  (if (seq bindings)
-    `(if-let ~(subvec bindings 0 2)
-       (if-lets ~(subvec bindings 2)
-         ~then
-         ~else)
-       ~else)
-    then))
+  ([bindings then]
+   `(if-lets ~bindings ~then))
+  ([bindings then else]
+   (if (seq bindings)
+     `(if-let ~(subvec bindings 0 2)
+        (if-lets ~(subvec bindings 2)
+          ~then
+          ~else)
+        ~else)
+     then)))
 
 (defmacro deftype-
   "Like `deftype`, but the constructor, ->`name`, will be private."

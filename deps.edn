@@ -5,4 +5,4 @@
   tools.macro/tools.macro {:local/root "/home/oskar/code/tools.macro"}
   fipp/fipp {:mvn/version "0.6.26"}
   better-cond/better-cond {:mvn/version "2.1.5"}}
-  :source-paths ["src"]}
+ :source-paths ["src"]}

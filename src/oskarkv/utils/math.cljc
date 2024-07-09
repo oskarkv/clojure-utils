@@ -14,11 +14,6 @@
   [x]
   (long (Math/ceil x)))
 
-(defn parse-int
-  "Parses a long with Long/parseLong."
-  ([x] (#?(:clj Long/parseLong :cljs js/parseInt) x))
-  ([x radix] (#?(:clj Long/parseLong :cljs js/parseInt) x radix)))
-
 (defn sum
   "Sums the numbers in `nums`."
   [nums]

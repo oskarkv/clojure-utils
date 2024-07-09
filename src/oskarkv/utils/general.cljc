@@ -5,23 +5,17 @@
    [clojure.string :as str]
    [clojure.walk :as walk]
    [com.rpl.specter :as s]
-   [oskarkv.utils.base :as b]
+   [oskarkv.utils.base :refer :all]
    [oskarkv.utils.impl :as impl]
    [oskarkv.utils.specter :as us]
    [oskarkv.utils.general-bb-unfriendly :as g]
    [oskarkv.utils.threading :refer :all]))
 
-(impl/define-ordinal-functions)
+(defalias invert-map set/map-invert)
 
-(impl/defprivatedef def- `def)
+(defalias postwalk walk/postwalk)
 
-(impl/defprivatedef defmacro- `defmacro)
-
-(b/defalias invert-map set/map-invert)
-
-(b/defalias postwalk walk/postwalk)
-
-(b/defalias prewalk walk/prewalk)
+(defalias prewalk walk/prewalk)
 
 (defn pcomp
   "Like `clojure.core/comp`, but if an argument is a vector with `ifn?`
@@ -299,53 +293,53 @@
       (interleave* s1 s2 (interleave-runs (count s1) (count s2))))))
 
 (impl/make-v-and-str-fns
- [filterv
-  keysv
-  mapcatv
-  mapv
-  removev
-  valsv
-  zipv]
- butlast
- concat
- cons
- dedupe
- distinct
- drop
- drop-last
- drop-while
- filter
- flatten
- flatten-all
- flatten-more
- indexed
- interleave
- interpose
- iterate-some
- keep
- keeps
- keys
- map
- map-indexed
- mapcat
- pair-cycle
- range
- remove
- repeat
- replace
- rest
- reverse
- shuffle
- sort
- sort-by
- take
- take-last
- take-nth
- take-while
- take-while-pairs
- uneven-interleave
- vals
- zip)
+    [filterv
+     keysv
+     mapcatv
+     mapv
+     removev
+     valsv
+     zipv]
+  butlast
+  concat
+  cons
+  dedupe
+  distinct
+  drop
+  drop-last
+  drop-while
+  filter
+  flatten
+  flatten-all
+  flatten-more
+  indexed
+  interleave
+  interpose
+  iterate-some
+  keep
+  keeps
+  keys
+  map
+  map-indexed
+  mapcat
+  pair-cycle
+  range
+  remove
+  repeat
+  replace
+  rest
+  reverse
+  shuffle
+  sort
+  sort-by
+  take
+  take-last
+  take-nth
+  take-while
+  take-while-pairs
+  uneven-interleave
+  vals
+  zip)
 
 (defn lastv
   "Returns the last element of `v`, a vector. More efficient than `last`
@@ -807,7 +801,7 @@
                            (vector? s) vec)))
         combine2 (fn [struct struct2]
                    (let [pred* (fn [x]
-                                 (b/ignore-exception (pred x)))
+                                 (ignore-exception (pred x)))
                          sat (pred* struct)
                          sat2 (pred* struct2)]
                      (cond
@@ -847,7 +841,7 @@
   "Returns a seq of [path value] items for each value nested inside
    `structure` that satisfies `pred`."
   [pred structure]
-  (letfn [(pred* [x] (b/ignore-exception (pred x)))
+  (letfn [(pred* [x] (ignore-exception (pred x)))
           (f [prev-path x] (mapcat (fn [[k v]]
                                      (paths* (conj prev-path k) v))
                                    x))
@@ -878,7 +872,7 @@
    they are also removed. The returned data structure will have vectors
    where `struct` had sequential collections."
   [pred struct]
-  (letfn [(pred* [x] (b/ignore-exception (pred x)))]
+  (letfn [(pred* [x] (ignore-exception (pred x)))]
     (when (and (not (pred* struct))
                ((some-fn map? sequential?) struct))
       (reduce (fn [st [path v]] (assoc-in* st [path] v))
@@ -904,7 +898,7 @@
    exception when used on any element, it is instead considered
    unsatisfied."
   [pred f & structs]
-  (letfn [(pred* [x] (b/ignore-exception (pred x)))]
+  (letfn [(pred* [x] (ignore-exception (pred x)))]
     (->> (mapcat #(struct-paths pred %) structs)
       (group-by firstv)
       (fmap (fn [xs]
@@ -999,58 +993,6 @@
     {:style/indent 0}
     [& args]
     `(cond ~@(expand args))))
-
-(defmacro when-lets
-  "Like `when-let` but can take multiple bindings. Evaluates body if every
-   binding is truthy."
-  {:style/indent 1}
-  [bindings & body]
-  (if (seq bindings)
-    `(when-let ~(subvec bindings 0 2)
-       (when-lets ~(subvec bindings 2)
-         ~@body))
-    `(do ~@body)))
-
-(defmacro when-somes
-  "Like `when-some` but can take multiple bindings. Evaluates body if
-   every binding is truthy."
-  {:style/indent 1}
-  [bindings & body]
-  (if (seq bindings)
-    `(when-some ~(subvec bindings 0 2)
-       (when-somes ~(subvec bindings 2)
-         ~@body))
-    `(do ~@body)))
-
-(defmacro if-lets
-  "Like `if-let` but can take multiple bindings. Evaluates the `then`
-   branch if every binding is truthy, else the `else` branch."
-  {:style/indent 1}
-  ([bindings then]
-   `(if-lets ~bindings ~then))
-  ([bindings then else]
-   (if (seq bindings)
-     `(if-let ~(subvec bindings 0 2)
-        (if-lets ~(subvec bindings 2)
-          ~then
-          ~else)
-        ~else)
-     then)))
-
-(defmacro if-somes
-  "Like `if-some` but can take multiple bindings. Evaluates the `then`
-   branch if every binding is nonnil, else the `else` branch."
-  {:style/indent 1}
-  ([bindings then]
-   `(if-somes ~bindings ~then))
-  ([bindings then else]
-   (if (seq bindings)
-     `(if-some ~(subvec bindings 0 2)
-        (if-somes ~(subvec bindings 2)
-          ~then
-          ~else)
-        ~else)
-     then)))
 
 (defmacro deftype-
   "Like `deftype`, but the constructor, ->`name`, will be private."

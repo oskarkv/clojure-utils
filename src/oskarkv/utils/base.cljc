@@ -1,4 +1,12 @@
-(ns oskarkv.utils.base)
+(ns oskarkv.utils.base
+  (:require
+   [oskarkv.utils.impl :as impl]))
+
+(impl/define-ordinal-functions)
+
+(impl/defprivatedef def- `def)
+
+(impl/defprivatedef defmacro- `defmacro)
 
 (defmacro ignore-exception
   "Evaluates `forms` and if an exception is thrown, instead return `nil`."

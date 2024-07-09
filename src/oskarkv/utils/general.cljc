@@ -6,9 +6,9 @@
    [clojure.walk :as walk]
    [com.rpl.specter :as s]
    [oskarkv.utils.base :refer :all]
+   [oskarkv.utils.general-bb-unfriendly :as g]
    [oskarkv.utils.impl :as impl]
    [oskarkv.utils.specter :as us]
-   [oskarkv.utils.general-bb-unfriendly :as g]
    [oskarkv.utils.threading :refer :all]))
 
 (defalias invert-map set/map-invert)

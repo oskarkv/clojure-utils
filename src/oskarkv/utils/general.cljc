@@ -16,6 +16,10 @@
 
 (defalias prewalk walk/prewalk)
 
+(defalias parse-float parse-double)
+
+(defalias parse-int parse-long)
+
 (defn transduce*
   "Like transduce, but can take multiple collections (and the xform are
    supposed to accept multiple values)."

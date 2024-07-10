@@ -92,6 +92,11 @@
                       ([x y z & args] (f (apply g x y z args))))))]
      (reduce pcomp2 (pcomp f) (list* g hs)))))
 
+(defn one?
+  "Returns true if num is one, else false."
+  [num]
+  (== 1 num))
+
 (defn scalar?
   "The complement of `coll?`."
   [x]

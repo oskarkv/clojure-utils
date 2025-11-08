@@ -282,11 +282,17 @@
       (list form value))))
 
 (defmacro +>$
+  "Works like ->$ except that it intelligently handles lets, ifs and
+   whens, threading into the branches/bodies, and not into the first
+   position of the sexp."
   {:style/indent 1}
   [value & forms]
   (reduce (partial thread thread-first) value forms))
 
 (defmacro +>>$
+  "Works like ->>$ except that it intelligently handles lets, ifs and
+   whens, threading into the branches/bodies, and not into the last
+   position of the sexp."
   {:style/indent 1}
   [value & forms]
   (reduce (partial thread thread-last) value forms))
@@ -303,14 +309,22 @@
          (~arrow ~first-arg ~@body))
        ~(meta &form))))
 
-(defmacro fn-> [& args]
+(defmacro fn->
+  "(fn-> & body) is like (fn [x] (->$ x ~@body))"
+  [& args]
   (make-threading-fn '->$ args &form))
 
-(defmacro fn->> [& args]
+(defmacro fn->>
+  "(fn->> & body) is like (fn [x] (->>$ x ~@body))"
+  [& args]
   (make-threading-fn '->>$ args &form))
 
-(defmacro fn+> [& args]
+(defmacro fn+>
+  "(fn+> & body) is like (fn [x] (+>>$ x ~@body))"
+  [& args]
   (make-threading-fn '+>$ args &form))
 
-(defmacro fn+>> [& args]
+(defmacro fn+>>
+  "(fn+>> & body) is like (fn [x] (+>>$ x ~@body))"
+  [& args]
   (make-threading-fn '+>>$ args &form))

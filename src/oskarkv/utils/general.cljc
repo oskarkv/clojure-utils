@@ -250,6 +250,7 @@
   "Returns a lazy sequence of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were
    given."
+  ([coll] (map vector coll))
   ([coll1 coll2] (map vector coll1 coll2))
   ([coll1 coll2 & more]
    (apply map vector coll1 coll2 more)))
@@ -258,6 +259,7 @@
   "Returns a vector of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were
    given."
+  ([coll] (mapv vector coll))
   ([coll1 coll2] (mapv vector coll1 coll2))
   ([coll1 coll2 & more]
    (apply mapv vector coll1 coll2 more)))
@@ -266,6 +268,7 @@
   "Returns a set of vectors, where the i:th vector contains the
    i:th elements of the arguments, in the order the arguments were
    given."
+  ([coll] (maps vector coll))
   ([coll1 coll2] (maps vector coll1 coll2))
   ([coll1 coll2 & more]
    (apply maps vector coll1 coll2 more)))

@@ -1,7 +1,8 @@
 (ns oskarkv.utils.specter
   (:require
    [com.rpl.specter :as s]
-   [oskarkv.utils.base :as b]))
+   [oskarkv.utils.specter-macros :as sm :include-macros true]
+   [oskarkv.utils.base :as b :include-macros true]))
 
 (defmacro recursive-search-path [args must-arg result-path]
     `(s/recursive-path ~args p#
@@ -26,10 +27,10 @@
   "A specter navigator to recursively find the values of the given key in
    a nested data structure. The key can be a key into any collection
    that works as a function."
-  (recursive-search-path [k] k k))
+  (sm/recursive-search-path [k] k k))
 
 (def structs-with
   "A specter navigator to recursively find structures (any coll that works
    as a function) that contain the given key in a nested data
    structure."
-  (recursive-search-path [k] k s/STAY))
+  (sm/recursive-search-path [k] k s/STAY))

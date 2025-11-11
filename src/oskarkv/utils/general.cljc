@@ -5,10 +5,15 @@
    [clojure.string :as str]
    [clojure.walk :as walk]
    [com.rpl.specter :as s]
-   [oskarkv.utils.base :refer :all]
+   [oskarkv.utils.base
+    :refer [firstv secondv ignore-exception]
+    :refer-macros [defalias defmacro-]]
    [oskarkv.utils.impl :as impl]
    [oskarkv.utils.specter :as us]
-   [oskarkv.utils.threading :refer :all]))
+   #?(:clj [oskarkv.utils.threading :refer :all]))
+  #?(:cljs
+     (:require-macros
+      [oskarkv.utils.threading :refer [cond->$]])))
 
 (defalias invert-map set/map-invert)
 
@@ -20,53 +25,97 @@
 
 (defalias parse-int parse-long)
 
-(defn transduce*
-  "Like transduce, but can take multiple collections (and the xform are
-   supposed to accept multiple values)."
-  ([xform f coll] (transduce xform f (f) coll))
-  ([xform f init coll]
-   (let [f (xform f)
-         ret (if (instance? clojure.lang.IReduceInit coll)
-               (.reduce ^clojure.lang.IReduceInit coll f init)
-               (clojure.core.protocols/coll-reduce coll f init))]
-     (f ret)))
-  ([xform f init coll & more]
-   (let [iter (clojure.lang.TransformerIterator/createMulti
-               xform
-               (map #(clojure.lang.RT/iter %) (cons coll more)))]
-     (loop [ret init]
-       (if (.hasNext iter)
-         (let [ret (f ret (.next iter))]
-           (if (reduced? ret)
-             @ret
-             (recur ret)))
-         ret)))))
+#?(:clj
+   (do
+     (def empty-queue clojure.lang.PersistentQueue/EMPTY)
 
-(defn into*
-  "Like into, but can take multiple collections (and the xform are
-   supposed to accept multiple values)."
-  ([] [])
-  ([to] to)
-  ([to from]
-   (if (instance? clojure.lang.IEditableCollection to)
-     (with-meta (persistent! (reduce conj! (transient to) from)) (meta to))
-     (reduce conj to from)))
-  ([to xform from]
-   (if (instance? clojure.lang.IEditableCollection to)
-     (let [tm (meta to)
-           rf (fn
-                ([coll] (-> (persistent! coll) (with-meta tm)))
-                ([coll v] (conj! coll v)))]
-       (transduce xform rf (transient to) from))
-     (transduce xform conj to from)))
-  ([to xform from & more]
-   (let [iter (clojure.lang.TransformerIterator/createMulti
-               xform
-               (map #(clojure.lang.RT/iter %) (cons from more)))]
-     (loop [trans (transient to)]
-       (if (.hasNext iter)
-         (recur (conj! trans (.next iter)))
-         (persistent! trans))))))
+     (defn transduce*
+       "Like transduce, but can take multiple collections (and the xform are
+        supposed to accept multiple values)."
+       ([xform f coll] (transduce xform f (f) coll))
+       ([xform f init coll]
+        (let [f (xform f)
+              ret (if (instance? clojure.lang.IReduceInit coll)
+                    (.reduce ^clojure.lang.IReduceInit coll f init)
+                    (clojure.core.protocols/coll-reduce coll f init))]
+          (f ret)))
+       ([xform f init coll & more]
+        (let [iter (clojure.lang.TransformerIterator/createMulti
+                    xform
+                    (map #(clojure.lang.RT/iter %) (cons coll more)))]
+          (loop [ret init]
+            (if (.hasNext iter)
+              (let [ret (f ret (.next iter))]
+                (if (reduced? ret)
+                  @ret
+                  (recur ret)))
+              ret)))))
+
+     (defn into*
+       "Like into, but can take multiple collections (and the xform are
+        supposed to accept multiple values)."
+       ([] [])
+       ([to] to)
+       ([to from]
+        (if (instance? clojure.lang.IEditableCollection to)
+          (with-meta (persistent! (reduce conj! (transient to) from)) (meta to))
+          (reduce conj to from)))
+       ([to xform from]
+        (if (instance? clojure.lang.IEditableCollection to)
+          (let [tm (meta to)
+                rf (fn
+                     ([coll] (-> (persistent! coll) (with-meta tm)))
+                     ([coll v] (conj! coll v)))]
+            (transduce xform rf (transient to) from))
+          (transduce xform conj to from)))
+       ([to xform from & more]
+        (let [iter (clojure.lang.TransformerIterator/createMulti
+                    xform
+                    (map #(clojure.lang.RT/iter %) (cons from more)))]
+          (loop [trans (transient to)]
+            (if (.hasNext iter)
+              (recur (conj! trans (.next iter)))
+              (persistent! trans))))))
+
+     (defn empty*
+       "Like `clojure.core/empty`, but returns a vector instead of a list for
+        MapEntries."
+       [coll]
+       (if (instance? clojure.lang.MapEntry coll) [] (empty coll)))
+
+     (defn array?
+       "Returns `true` if `x` is a Java array."
+       [x]
+       (.isArray (class x)))
+
+     (let [reducer (fn [walker f state tree]
+                     (reduce
+                      (fn [[state replacement] node]
+                        (let [[state* node*] (walker f state node)]
+                          [state* (conj replacement node*)]))
+                      [state (empty* tree)]
+                      tree))]
+       (defn postwalk-with-state
+         "Like `clojure.walk/postwalk` except f takes two args, a state and a tree,
+          and should output a new state and a new tree. As the tree is
+          walked, each time f is called the last state is passed to it. `state`
+          is the initial state."
+         [f state tree]
+         (if (coll? tree)
+           (let [[s t] (reducer postwalk-with-state f state tree)]
+             (f s (if (seq? t) (reverse t) t)))
+           (f state tree)))
+       (defn prewalk-with-state
+         "Like `clojure.walk/prewalk` except `f` takes two args, a state and a tree,
+          and should output a new state and a new tree. As the tree is
+          walked, each time f is called the last state is passed to it. `state`
+          is the initial state."
+         [f state tree]
+         (let [[new-state new-tree] (f state tree)]
+           (if (coll? new-tree)
+             (reducer prewalk-with-state f new-state new-tree)
+             [new-state new-tree]))))
+     ))
 
 (defn pcomp
   "Like `clojure.core/comp`, but if an argument is a vector with `ifn?`
@@ -101,17 +150,6 @@
   "The complement of `coll?`."
   [x]
   (not (coll? x)))
-
-(defn array?
-  "Returns `true` if `x` is a Java array."
-  [x]
-  (.isArray (class x)))
-
-(defn empty*
-  "Like `clojure.core/empty`, but returns a vector instead of a list for
-   MapEntries."
-  [coll]
-  (if (instance? clojure.lang.MapEntry coll) [] (empty coll)))
 
 (defmacro condp*
   "Like `condp` but the predicate takes the arguments in the reverse
@@ -177,34 +215,6 @@
     [f form]
     (walk/prewalk (t f) form)))
 
-(let [reducer (fn [walker f state tree]
-                (reduce
-                 (fn [[state replacement] node]
-                   (let [[state* node*] (walker f state node)]
-                     [state* (conj replacement node*)]))
-                 [state (empty* tree)]
-                 tree))]
-  (defn postwalk-with-state
-    "Like `clojure.walk/postwalk` except f takes two args, a state and a tree,
-     and should output a new state and a new tree. As the tree is
-     walked, each time f is called the last state is passed to it. `state`
-     is the initial state."
-    [f state tree]
-    (if (coll? tree)
-      (let [[s t] (reducer postwalk-with-state f state tree)]
-        (f s (if (seq? t) (reverse t) t)))
-      (f state tree)))
-  (defn prewalk-with-state
-    "Like `clojure.walk/prewalk` except `f` takes two args, a state and a tree,
-     and should output a new state and a new tree. As the tree is
-     walked, each time f is called the last state is passed to it. `state`
-     is the initial state."
-    [f state tree]
-    (let [[new-state new-tree] (f state tree)]
-      (if (coll? new-tree)
-        (reducer prewalk-with-state f new-state new-tree)
-        [new-state new-tree]))))
-
 (defn removev
   "Returns a vector of the items in coll for which (pred item) returns
    logical false. pred must be free of side-effects."
@@ -231,20 +241,21 @@
    logical false. pred must be free of side-effects."
   ([pred coll]
    (into #{} (remove pred) coll)))
+#?(:clj
+   (do
+     (defn mapcatv
+       "Like mapcat, but returns a vector."
+       ([f coll]
+        (into [] (mapcat f) coll))
+       ([f coll & more]
+        (apply into* [] (mapcat f) coll more)))
 
-(defn mapcatv
-  "Like mapcat, but returns a vector."
-  ([f coll]
-   (into [] (mapcat f) coll))
-  ([f coll & more]
-   (apply into* [] (mapcat f) coll more)))
-
-(defn mapcats
-  "Like mapcat, but returns a set."
-  ([f coll]
-   (into #{} (mapcat f) coll))
-  ([f coll & more]
-   (apply into* #{} (mapcat f) coll more)))
+     (defn mapcats
+       "Like mapcat, but returns a set."
+       ([f coll]
+        (into #{} (mapcat f) coll))
+       ([f coll & more]
+        (apply into* #{} (mapcat f) coll more)))))
 
 (defn zip
   "Returns a lazy sequence of vectors, where the i:th vector contains the
@@ -1121,81 +1132,83 @@
                                [s `(gensym ~(subs (str s) 2))]))]
          ~@body))))
 
-(defmacro defmacro!
-  "Like defmacro, but symbols starting with g! in the body will be
-   let-bound to gensyms, and symbols starting with o! in the arguments
-   vector of the defined macro will be evaluated and the corresponding
-   g!-symbols will be let-bound to the results, making it easy to
-   evaluate the arguments only once."
-  {:style/indent :defn
-   :arglists '([name docstring? attr-map? args & body])}
-  [& args]
-  (let [[name docstring attr-map args body]
-        (apply defmacro!-args-fix args)
-        os (filter o!-sym? (flatten-all args))
-        gs (map o!-sym-to-g!-sym os)]
-    `(defmacro-g! ~name ~@docstring ~@attr-map ~args
-       `(let [~~@(interleave gs os)]
-          ~~@body))))
+#?(:clj
+   (do
+     (defmacro defmacro!
+       "Like defmacro, but symbols starting with g! in the body will be
+        let-bound to gensyms, and symbols starting with o! in the arguments
+        vector of the defined macro will be evaluated and the corresponding
+        g!-symbols will be let-bound to the results, making it easy to
+        evaluate the arguments only once."
+       {:style/indent :defn
+        :arglists '([name docstring? attr-map? args & body])}
+       [& args]
+       (let [[name docstring attr-map args body]
+             (apply defmacro!-args-fix args)
+             os (filter o!-sym? (flatten-all args))
+             gs (map o!-sym-to-g!-sym os)]
+         `(defmacro-g! ~name ~@docstring ~@attr-map ~args
+            `(let [~~@(interleave gs os)]
+               ~~@body))))
 
-(defmacro! print-intermediate-results [& body]
-  (letfn [(printer [real-exp original-exp]
-            `(let ~[g!r real-exp]
-               (println '~original-exp " = "
-                        (if (lazy-seq? ~g!r)
-                          (apply list (take 20 ~g!r))
-                          ~g!r))
-               ~g!r))
-          (print-sym [sym]
-            (if (and (symbol? sym) (not (resolve sym)))
-              (printer sym sym)
-              sym))
-          (walk-expr [exp]
-            (cond (vector? exp) (mapv walk-expr exp)
-                  (map? exp) (into {} (map walk-expr exp))
-                  (sequential? exp)
-                  (cond (some #{'recur} (flatten exp))
-                        (map walk-expr exp)
-                        (= 'case (first exp))
-                        exp
-                        :else (let [i (map walk-expr exp)]
-                                (printer
-                                 (cons (first i) (map print-sym (rest i)))
-                                 exp)))
-                  :else exp))]
-    `(binding [*print-length* 5]
-       (do ~@(map walk-expr body)))))
+     (defmacro! print-intermediate-results [& body]
+       (letfn [(printer [real-exp original-exp]
+                 `(let ~[g!r real-exp]
+                    (println '~original-exp " = "
+                             (if (lazy-seq? ~g!r)
+                               (apply list (take 20 ~g!r))
+                               ~g!r))
+                    ~g!r))
+               (print-sym [sym]
+                 (if (and (symbol? sym) (not (resolve sym)))
+                   (printer sym sym)
+                   sym))
+               (walk-expr [exp]
+                 (cond (vector? exp) (mapv walk-expr exp)
+                       (map? exp) (into {} (map walk-expr exp))
+                       (sequential? exp)
+                       (cond (some #{'recur} (flatten exp))
+                             (map walk-expr exp)
+                             (= 'case (first exp))
+                             exp
+                             :else (let [i (map walk-expr exp)]
+                                     (printer
+                                      (cons (first i) (map print-sym (rest i)))
+                                      exp)))
+                       :else exp))]
+         `(binding [*print-length* 5]
+            (do ~@(map walk-expr body)))))
 
-(defmacro! with-indented-printlns
-  "Let binds `println` to a function that is like regular `println`, but
-   prints with an indent. The indent increases each time a function f is
-   called and decreases when f returns, iff f was created in the code
-   wrapped by a call to this macro such that it eventually (after
-   macroexpansion) turns into an `fn*` form."
-  {:style/indent 0}
-  [& code]
-  (letfn [(handle-fn* [[_ & clauses]]
-            (list* 'fn* (map (fn [[args & body]]
-                               (cons args `((vswap! ~g!depth inc)
-                                            (let [r# (do ~@body)]
-                                              (vswap! ~g!depth dec)
-                                              r#))))
-                             clauses)))]
-    (unqualify-syms [args]
-      `(let [~g!depth (volatile! -1)
-             ~'println (fn [& args]
-                         (println
-                          (apply str (apply str (repeat @~g!depth "  "))
-                                 (interpose " " args))))]
-         ~@(walk/postwalk
-            (fn [form]
-              (if (and (seq? form) (= 'fn* (first form)))
-                (handle-fn* (if (vector? (second form))
-                              (list 'fn* (rest form))
-                              form))
-                form))
-            ;; Expand macros first, so we only have to deal with fn* forms.
-            (walk/prewalk macroexpand code))))))
+     (defmacro! with-indented-printlns
+       "Let binds `println` to a function that is like regular `println`, but
+        prints with an indent. The indent increases each time a function f is
+        called and decreases when f returns, iff f was created in the code
+        wrapped by a call to this macro such that it eventually (after
+        macroexpansion) turns into an `fn*` form."
+       {:style/indent 0}
+       [& code]
+       (letfn [(handle-fn* [[_ & clauses]]
+                 (list* 'fn* (map (fn [[args & body]]
+                                    (cons args `((vswap! ~g!depth inc)
+                                                 (let [r# (do ~@body)]
+                                                   (vswap! ~g!depth dec)
+                                                   r#))))
+                                  clauses)))]
+         (unqualify-syms [args]
+           `(let [~g!depth (volatile! -1)
+                  ~'println (fn [& args]
+                              (println
+                               (apply str (apply str (repeat @~g!depth "  "))
+                                      (interpose " " args))))]
+              ~@(walk/postwalk
+                 (fn [form]
+                   (if (and (seq? form) (= 'fn* (first form)))
+                     (handle-fn* (if (vector? (second form))
+                                   (list 'fn* (rest form))
+                                   form))
+                     form))
+                 ;; Expand macros first, so we only have to deal with fn* forms.
+                 (walk/prewalk macroexpand code))))))))
 
 (defmacro log-fn-io
   "Replace the function named in its var with a function that wraps it,
@@ -1236,43 +1249,43 @@
                                (partition 2 (second let-expr))))]
     `(let* ~(vec new-let-bindings))))
 
-(def empty-queue clojure.lang.PersistentQueue/EMPTY)
-
 (defmacro error-printing-future
   "Like `future`, but prints stack traces to `*err*`."
   {:style/indent 0}
   [& body]
   `(future (try ~@body (catch Exception e# (.printStackTrace e# *err*)))))
 
-(defmacro start-new-thread
-  "Start a new Java thread the given `name` and `body`."
-  {:style/indent 1}
-  [name & body]
-  `(.start (Thread. (fn [] ~@body) ~name)))
+#?(:clj
+   (do
+     (defmacro start-new-thread
+       "Start a new Java thread the given `name` and `body`."
+       {:style/indent 1}
+       [name & body]
+       `(.start (Thread. (fn [] ~@body) ~name)))
 
-(defn current-thread-id [msg]
-  (.getId (Thread/currentThread)))
+     (defn current-thread-id [msg]
+       (.getId (Thread/currentThread)))
 
-(defn current-thread-name []
-  (.getName (Thread/currentThread)))
+     (defn current-thread-name []
+       (.getName (Thread/currentThread)))
 
-(defn throw-error [& msg]
-  (throw (Error. (apply str msg))))
+     (defn throw-error [& msg]
+       (throw (Error. (apply str msg))))
 
-(defn throw-ex [& msg]
-  (throw (Exception. (apply str msg))))
+     (defn throw-ex [& msg]
+       (throw (Exception. (apply str msg))))
 
-(defmacro take-at-least-ms
-  "Execute `body`. If it takes less than `ms` ms, sleep for the remaining
-   time. If it takes more, print a warning."
-  {:style/indent 1}
-  [ms & body]
-  `(let [start# (current-time-ms)
-         result# (do ~@body)
-         stop# (current-time-ms)
-         took# (- stop# start#)]
-     (if (>= ~ms took#)
-       (Thread/sleep (- ~ms took#))
-       (println "WARNING:" (current-thread-name)
-                "took longer than expected to execute" '~body))
-     result#))
+     (defmacro take-at-least-ms
+       "Execute `body`. If it takes less than `ms` ms, sleep for the remaining
+        time. If it takes more, print a warning."
+       {:style/indent 1}
+       [ms & body]
+       `(let [start# (current-time-ms)
+              result# (do ~@body)
+              stop# (current-time-ms)
+              took# (- stop# start#)]
+          (if (>= ~ms took#)
+            (Thread/sleep (- ~ms took#))
+            (println "WARNING:" (current-thread-name)
+                     "took longer than expected to execute" '~body))
+          result#))))

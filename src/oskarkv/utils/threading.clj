@@ -203,7 +203,6 @@
       (let [[body extra-clauses] (split-with (complement catch-clause?) body)
             body (reduce thread* value-symbol body)
             extra-clauses (mapv (fn [clause]
-                                  (println "clause" clause (class clause))
                                   (match clause
                                     (['catch kind name & clause-body] :seq)
                                     (let [body (reduce thread* value-symbol clause-body)]
@@ -213,10 +212,8 @@
                                     ;; thread through finally.
                                     clause))
                                 extra-clauses)]
-        (do
-          (println extra-clauses)
-          `(let [~value-symbol ~value]
-             (try ~body ~@extra-clauses))))
+        `(let [~value-symbol ~value]
+           (try ~body ~@extra-clauses)))
 
       ([if :guard if? cond then else] :seq)
       (let [cond (thread-if$ func value-symbol cond)

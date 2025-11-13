@@ -6,8 +6,9 @@
    [clojure.walk :as walk]
    [com.rpl.specter :as s]
    [oskarkv.utils.base
-    :refer [firstv secondv ignore-exception]
-    :refer-macros [defalias defmacro-]]
+    #?@(:clj [:refer [firstv secondv ignore-exception defalias defmacro-]]
+        :cljs [:refer [firstv secondv]
+               :refer-macros [ignore-exception defalias defmacro-]])]
    [oskarkv.utils.impl :as impl]
    [oskarkv.utils.specter :as us]
    #?(:clj [oskarkv.utils.threading :refer :all]))

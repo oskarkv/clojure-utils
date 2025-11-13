@@ -1054,12 +1054,14 @@
 (letfn [(expand [[x :as s]]
           (when (seq s)
             (if (vector? x)
-              (let [[a b] x]
-                (cons a (cons b (expand (rest s)))))
+              (let [[cond-exp & then] x]
+                (cons cond-exp (cons `(do ~@then) (expand (rest s)))))
               (concat (take 2 s) (expand (drop 2 s))))))]
   (defmacro cond*
     "Like `cond`, but each test-expr pair may, but doesn't have to, be
-     wrapped in a vector. Useful for readability sometimes."
+     wrapped in a vector for readability. The vector may have more than
+     two elements, in which case everything but the first will be
+     wrapped in a `do`."
     {:style/indent 0}
     [& args]
     `(cond ~@(expand args))))

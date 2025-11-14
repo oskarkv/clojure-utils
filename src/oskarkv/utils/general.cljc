@@ -654,6 +654,19 @@
   [probability]
   (< (rand) probability))
 
+#?(:clj
+   (defn random-string
+     "Create a random URL and filename safe base64 encoded string with the
+      given number of bytes of randomness. If no argument is given,
+      defaults to 16 bytes."
+     ([] (random-string 16))
+     ([random-bytes]
+      (let [bytes (byte-array random-bytes)]
+        (.nextBytes (java.security.SecureRandom.) bytes)
+        (-> (java.util.Base64/getUrlEncoder)
+          (.withoutPadding)
+          (.encodeToString bytes))))))
+
 (defn remove-vals
   "Removes entries from `m` (a map) where the value satisfies `pred`."
   [pred m]

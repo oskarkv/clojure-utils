@@ -216,6 +216,20 @@
     [f form]
     (walk/prewalk (t f) form)))
 
+(defn cond-postwalk
+  "Like `clojure.walk/postwalk` but only applies `f` to elements
+   that satisfy `pred`."
+  [pred f form]
+  (walk/postwalk (fn [x] (if (pred x) (f x) x))
+                 form))
+
+(defn cond-prewalk
+  "Like `clojure.walk/prewalk` but only applies `f` to elements
+   that satisfy `pred`."
+  [pred f form]
+  (walk/prewalk (fn [x] (if (pred x) (f x) x))
+                form))
+
 (defn removev
   "Returns a vector of the items in coll for which (pred item) returns
    logical false. pred must be free of side-effects."

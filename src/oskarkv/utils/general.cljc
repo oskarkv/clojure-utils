@@ -548,6 +548,13 @@
   [x coll]
   (first (keep-indexed (fn [i val] (when (= x val) i)) coll)))
 
+(defn random-element
+  "Pick one element by random."
+  [elements]
+  (let [es (vec elements)
+        i (rand-int (count es))]
+    (es i)))
+
 (defn random-elements
   "Returns `ratio` of the elements in `elements`, randomly."
   [ratio elements]

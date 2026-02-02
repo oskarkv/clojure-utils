@@ -712,7 +712,14 @@
 (defn replace-keys
   "For any key in `m`, replaces it with (`rmap` key) if it exists in `rmap`."
   [m rmap]
-  (zipmap (replace rmap (keys m)) (vals m)))
+  (reduce (fn [m [orig repl]]
+            (if (contains? m orig)
+              (-> m
+                (assoc repl (m orig))
+                (dissoc orig))
+              m))
+          m
+          rmap))
 
 (defn select-random-keys
   "Returns a map with `num` mappings from `m`, selected randomly."

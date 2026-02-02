@@ -14,7 +14,18 @@
    #?(:clj [oskarkv.utils.threading :refer :all]))
   #?(:cljs
      (:require-macros
-      [oskarkv.utils.threading :refer [cond->$]])))
+      [oskarkv.utils.threading :refer [cond->$]]))
+  #?(:clj (:import
+           [java.time LocalDateTime]
+           [java.time.format DateTimeFormatter])))
+
+#?(:clj
+   (defn now-iso
+     "Returns the local now as string with format
+      'yyyy-MM-dd HH:mm:ss'."
+     []
+     (.format (LocalDateTime/now)
+              (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss"))))
 
 (defalias invert-map set/map-invert)
 

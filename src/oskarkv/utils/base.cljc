@@ -1,6 +1,6 @@
 (ns oskarkv.utils.base
   (:require
-   [oskarkv.utils.impl :as impl]))
+   [oskarkv.utils.impl :as impl #?@(:cljs [:include-macros true])]))
 
 (impl/define-ordinal-functions)
 

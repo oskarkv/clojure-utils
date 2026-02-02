@@ -1,7 +1,7 @@
 (ns oskarkv.utils.printing
   (:require
    [fipp.edn :as pp]
-   [oskarkv.utils.base :as b]))
+   [oskarkv.utils.base :as b #?@(:cljs [:include-macros true])]))
 
 (b/defalias pprint pp/pprint)
 

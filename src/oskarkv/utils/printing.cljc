@@ -10,6 +10,11 @@
   [x]
   (println x) x)
 
+(defn printlnit
+  "Prints `x` with `println` plus a blank line and returns `x`."
+  [x]
+  (println x) (println) x)
+
 (defn tapit
   "Calls `tap>` on `x` and returns `x`."
   [x]

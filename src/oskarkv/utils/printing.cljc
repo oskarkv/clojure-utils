@@ -29,3 +29,8 @@
   "Pprints `x` followed by a blank line and returns `x`."
   [x]
   (pp/pprint x) (println) x)
+
+(defn print-ex [e]
+  (binding [*out* *err*]
+    (println (ex-message e))
+    (pp/pprint (ex-data e))))

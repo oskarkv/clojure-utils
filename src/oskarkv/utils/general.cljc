@@ -1326,3 +1326,39 @@
             (println "WARNING:" (current-thread-name)
                      "took longer than expected to execute" '~body))
           result#))))
+
+(defn leven-dist
+  "Returns the Levenshtein distance between `s1` and `s2.`"
+  [s1 s2]
+  ;; Wagner-Fischer algorithm. Basically does this:
+  ;; ```
+  ;; (defmemoized leven [s1 s2]
+  ;;   (let [[c1 & r1] s1
+  ;;         [c2 & r2] s2]
+  ;;     (cond
+  ;;       (not c1) (count s2)
+  ;;       (not c2) (count s1)
+  ;;       (= c1 c2) (leven r1 r2)
+  ;;       :else (let [sub (leven r1 r2)
+  ;;                   del (leven r1 s2)
+  ;;                   ins (leven s1 r2)]
+  ;;               (inc (min sub del ins))))))
+  ;; ```
+  ;; but with dynamic programming.
+  (let [len1 (count s1)
+        len2 (count s2)]
+    (cond
+      (zero? len1) len2
+      (zero? len2) len1
+      :else
+      (let [row (range (inc len2))]
+        (last
+         (reduce (fn [prev-row [i c1]]
+                   (reduce (fn [curr-row [j c2]]
+                             (let [cost (if (= c1 c2) 0 1)
+                                   ins (inc (nth curr-row j))
+                                   del (inc (nth prev-row (inc j)))
+                                   sub (+ cost (nth prev-row j))]
+                               (conj curr-row (min ins del sub))))
+                           [(inc i)] (map-indexed vector s2)))
+                 row (map-indexed vector s1)))))))

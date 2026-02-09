@@ -33,4 +33,5 @@
 (defn print-ex [e]
   (binding [*out* *err*]
     (println (ex-message e))
-    (pp/pprint (ex-data e))))
+    (pp/pprint (ex-data e))
+    (.printStackTrace e)))

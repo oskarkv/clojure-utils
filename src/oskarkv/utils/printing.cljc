@@ -5,6 +5,12 @@
 
 (b/defalias pprint pp/pprint)
 
+(defn pprint-str
+  "Pprint to string."
+  [x]
+  (with-out-str
+    (pprint x)))
+
 (defn printit
   "Prints `x` with `println` and returns `x`."
   [x]

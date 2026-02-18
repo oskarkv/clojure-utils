@@ -156,7 +156,7 @@
   [value form]
   (concat form [value]))
 
-(defn thread
+(defn- thread
   [func value form]
   (let [value-symbol (gensym)
         thread* (partial thread func)
@@ -216,7 +216,7 @@
            (try ~body ~@extra-clauses)))
 
       ([if :guard if? cond then else] :seq)
-      (let [cond (thread-if$ func value-symbol cond)
+      (let [cond (thread-if$ value-symbol cond)
             then (thread* value-symbol then)
             else (thread* value-symbol else)]
         `(let [~value-symbol ~value]
@@ -231,7 +231,7 @@
            (~ifs ~bindings ~then ~else)))
 
       ([if :guard if? cond then] :seq)
-      (let [cond (thread-if$ func value-symbol cond)
+      (let [cond (thread-if$ value-symbol cond)
             then (thread* value-symbol then)]
         `(let [~value-symbol ~value]
            (~if ~cond ~then ~value-symbol)))
@@ -244,7 +244,7 @@
            (~ifs ~bindings ~then ~value-symbol)))
 
       ([when :guard when? cond & body] :seq)
-      (let [cond (thread-if$ func value-symbol cond)
+      (let [cond (thread-if$ value-symbol cond)
             body (reduce thread* value-symbol body)
             if (when->if when)]
         `(let [~value-symbol ~value]
@@ -308,20 +308,20 @@
 
 (defmacro fn->
   "(fn-> & body) is like (fn [x] (->$ x ~@body))"
-  [& args]
-  (make-threading-fn '->$ args &form))
+  [& body]
+  (make-threading-fn '->$ body &form))
 
 (defmacro fn->>
   "(fn->> & body) is like (fn [x] (->>$ x ~@body))"
-  [& args]
-  (make-threading-fn '->>$ args &form))
+  [& body]
+  (make-threading-fn '->>$ body &form))
 
 (defmacro fn+>
   "(fn+> & body) is like (fn [x] (+>>$ x ~@body))"
-  [& args]
-  (make-threading-fn '+>$ args &form))
+  [& body]
+  (make-threading-fn '+>$ body &form))
 
 (defmacro fn+>>
   "(fn+>> & body) is like (fn [x] (+>>$ x ~@body))"
-  [& args]
-  (make-threading-fn '+>>$ args &form))
+  [& body]
+  (make-threading-fn '+>>$ body &form))

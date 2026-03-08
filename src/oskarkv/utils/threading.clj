@@ -80,6 +80,55 @@
      ~@(map (fn [form] `(as-> ~'$ ~(insert-$-in-one arrow form)))
             forms)))
 
+(defn- condf-body [x arrow pairs]
+  `(as-> ~x ~'$
+         ~@(map (fn [[test-fn form]]
+                     (if form
+                       (list `if (insert-$-in-one arrow test-fn)
+                             (insert-$-in-one arrow form)
+                             '$)
+                       (insert-$-in-one arrow test-fn)))
+                   (partition-all 2 pairs))))
+
+(defn- condf-1-body [x arrow pairs]
+  `(let [~'$ ~x]
+     (cond ~@(mapcat (fn [[test-fn form]]
+                    (if form
+                      (map (partial insert-$-in-one arrow) [test-fn form])
+                      [:else (insert-$-in-one arrow test-fn)]))
+                  (partition-all 2 pairs)))))
+
+(defmacro condf->$
+  "Acts like cond->$ but also threads obj through the tests even if they
+   don't contain $. Can have an extra expression without a test at the end."
+  {:style/indent 1}
+  [obj & pairs]
+  (condf-body obj `-> pairs))
+
+(defmacro condf->>$
+  "Acts like cond->>$ but also threads obj through the tests even if they
+   don't contain $. Can have an extra expression without a test at the end."
+  {:style/indent 1}
+  [obj & pairs]
+  (condf-body obj `->> pairs))
+
+(defmacro condf->$1
+  "Acts like cond->$ but with two differences: 1. It threads obj through
+   the test expressions. 2. It stops after one truthy expression, like
+   regular cond. Can include a single default expression last."
+  {:style/indent 1}
+  [obj & pairs]
+  (condf-1-body obj `-> pairs))
+
+(defmacro condf->>$1
+  "Acts like cond->>$ but with two differences: 1. It threads obj
+   through the test expressions. 2. It stops after one truthy
+   expression, like regular cond. Can include a single default
+   expression last."
+  {:style/indent 1}
+  [obj & pairs]
+  (condf-1-body obj `->> pairs))
+
 (defmacro ->$
   "Acts like (`as->` x $ form) when a form contains $, otherwise acts like
    `->`."

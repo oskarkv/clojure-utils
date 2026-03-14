@@ -84,5 +84,11 @@
   ([max] (rand-int (inc max)))
   ([min max] (+ min (rand-int (inc (- max min))))))
 
+(let [r (java.util.Random.)]
+  (defn rand-int-all-bits
+    "Returns an int with all bits randomized."
+    []
+    (.nextInt r)))
+
 (impl/make-v-and-str-fns []
                          normalize-by-sum)

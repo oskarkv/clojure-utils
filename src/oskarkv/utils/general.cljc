@@ -1040,6 +1040,11 @@
   #?(:cljs (.getTime (js/Date.))
      :clj (System/currentTimeMillis)))
 
+(defn current-time-nanos
+  "Returns the current time in ns."
+  []
+  (System/nanoTime))
+
 (defn unqualify-all
   "Returns `tree` but where every qualified symbol or keyword has been
    unqualified."

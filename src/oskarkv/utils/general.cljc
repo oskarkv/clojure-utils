@@ -1345,6 +1345,9 @@
      (defn throw-ex [& msg]
        (throw (Exception. (apply str msg))))
 
+     (defn throw-info [msg map]
+       (throw (ex-info msg map)))
+
      (defmacro take-at-least-ms
        "Execute `body`. If it takes less than `ms` ms, sleep for the remaining
         time. If it takes more, print a warning."

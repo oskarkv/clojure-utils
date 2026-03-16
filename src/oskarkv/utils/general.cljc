@@ -37,6 +37,16 @@
 
 (defalias parse-int parse-long)
 
+(defn tree-seq-post
+  "Like `tree-seq`, but the children come first."
+  [branch? children root]
+  (let [walk (fn walk [node]
+               (lazy-cat
+                (when (branch? node)
+                  (mapcat walk (children node)))
+                [node]))]
+    (walk root)))
+
 #?(:clj
    (do
      (def empty-queue clojure.lang.PersistentQueue/EMPTY)

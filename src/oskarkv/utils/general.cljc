@@ -1094,24 +1094,6 @@
          ~@body))
     `(dotimes ~bindsvec ~@body)))
 
-(letfn [(const [x]
-          (with-meta x {:const true}))]
-  (defmacro defconst
-    "Like `def` but defines a constant (:const true in metadata)."
-    {:style/indent :defn}
-    ([sym value]
-     (list `def (const sym) value))
-    ([sym docstring value]
-     (list `def (const sym) docstring value)))
-  (defmacro defconsts
-    "Defines constants (:const true in metadata). The arguments should be
-     pairs of symbols and values, e.g. (defconsts a 1 b 2)."
-    {:style/indent 0}
-    [& pairs]
-    (let [pairs (partition 2 pairs)]
-      `(do ~@(map (fn [[sym val]] `(def ~(const sym) ~val))
-                  pairs)))))
-
 (defmacro make-map
   "Returns a map from keywords with the names of the symbols in `syms`
    to their values in the current context."

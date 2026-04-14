@@ -695,6 +695,12 @@
           (.withoutPadding)
           (.encodeToString bytes))))))
 
+(defn filter-vals
+  "Returns a new map that is `m` with only the entries whose values
+   satisfy `pred`."
+  [pred m]
+  (into {} (filter (comp pred val)) m))
+
 (defn remove-vals
   "Removes entries from `m` (a map) where the value satisfies `pred`."
   [pred m]

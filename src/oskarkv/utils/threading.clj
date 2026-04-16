@@ -219,6 +219,9 @@
                                    [sym (thread-if$ value-symbol form)]))
                             (apply concat)
                             vec))]
+    ;; In core.match (x :seq) means match and x that is a seq, and (x
+    ;; :guard pred) means match an x that satisfies pred, so a list
+    ;; matches just one element.
     (match form
       (['case expr & clauses] :seq)
       (let [expr (thread-if$ value-symbol expr)
@@ -316,7 +319,7 @@
         `(let [~value-symbol ~value ~@bindings]
            ~body))
 
-      (f :guard list?)
+      (f :guard coll?)
       (if (contains-$? form)
         `(as-> ~value ~'$ ~form)
         (func value form))

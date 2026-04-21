@@ -201,6 +201,26 @@
   ([f m] (update-keys m f))
   ([f m & colls] (zipmap (apply map f (keys m) colls) (vals m))))
 
+(defn map-with-state
+  "Maps f over coll, threading state through the applications. f should
+   be a function of [state item], and return the new state and new item.
+   Returns [new-state mapped-coll]."
+  [f state coll]
+  (let [[state acc] (reduce (fn [[state acc] x]
+                              (let [[state x*] (f state x)]
+                                [state (conj! acc x*)]))
+                            [state (transient [])]
+                            coll)]
+    [state (persistent! acc)]))
+
+(defn fmap-with-state
+  "Maps f over the values of m, threading state through the applications. f should
+   be a function of [state item], and return the new state and new item.
+   Returns [new-state new-m]."
+  [f state m]
+  (let [[state vals*] (map-with-state f state (vals m))]
+    [state (zipmap (keys m) vals*)]))
+
 (defn keeps
   "Like `keep`, but can take more than one coll, similar to `map`."
   ([f] (keep f))

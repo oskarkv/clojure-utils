@@ -447,6 +447,13 @@
   vals
   zip)
 
+(defn nextv
+  "Returns a (vec (next v)) if (next v) is not nil, else nil."
+  [coll]
+  (let [n (next coll)]
+    (cond-> n
+      (seq n) vec)))
+
 (defn lastv
   "Returns the last element of `v`, a vector. More efficient than `last`
    for vectors."

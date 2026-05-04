@@ -1,5 +1,6 @@
 (ns oskarkv.utils.math
   (:require
+   [clojure.core.matrix :as m]
    [oskarkv.utils.base :as b]
    [oskarkv.utils.general :as g]
    [oskarkv.utils.impl :as impl]))
@@ -28,7 +29,7 @@
   "Returns a sequence where each number in `nums` has been divided by
    the sum of the elements in `nums`."
   [nums]
-  (mapv #(/ % (sum nums)) nums))
+  (m/div nums (sum nums)))
 
 (defn sign
   "Returns 1 for positive numbers, -1 for negative numbers, and 0 for 0."

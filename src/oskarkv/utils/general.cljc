@@ -1089,6 +1089,9 @@
      []
      (System/nanoTime)))
 
+(defn current-time-secs []
+  (/ (current-time-ms) 1000.0))
+
 (defn unqualify-all
   "Returns `tree` but where every qualified symbol or keyword has been
    unqualified."

@@ -1,5 +1,6 @@
 {:deps
  {org.clojure/clojure {:mvn/version "1.12.3"}
+  net.mikera/core.matrix {:local/root "/home/oskar/code/core.matrix"}
   com.rpl/specter {:local/root "/home/oskar/code/specter"}
   org.clojure/tools.namespace {:mvn/version "1.5.0"}
   tools.macro/tools.macro {:local/root "/home/oskar/code/tools.macro"}

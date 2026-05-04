@@ -599,9 +599,9 @@
 (defn random-element
   "Pick one element by random."
   [elements]
-  (let [es (vec elements)
-        i (rand-int (count es))]
-    (es i)))
+  (if (vector? elements)
+    (elements (rand-int (count elements)))
+    (rand-nth (seq elements))))
 
 (defn random-elements
   "Returns `ratio` of the elements in `elements`, randomly."

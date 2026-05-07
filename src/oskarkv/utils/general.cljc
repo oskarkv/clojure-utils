@@ -1086,6 +1086,7 @@
 #?(:clj
    (defn current-time-nanos
      "Returns the current time in ns."
+     ^long
      []
      (System/nanoTime)))
 

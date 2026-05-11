@@ -455,6 +455,7 @@
   replace
   rest
   reverse
+  reductions
   shuffle
   sort
   sort-by

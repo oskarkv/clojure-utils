@@ -467,6 +467,9 @@
   vals
   zip)
 
+(defn repeatedlyv [n f]
+  (vec (repeatedly n f)))
+
 (defn nextv
   "Returns a (vec (next v)) if (next v) is not nil, else nil."
   [coll]

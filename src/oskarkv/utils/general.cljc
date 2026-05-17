@@ -227,6 +227,15 @@
   ([f coll] (keep f coll))
   ([f coll & colls] (apply sequence (comp (map f) (remove nil?)) coll colls)))
 
+
+(defn keepcat
+  "Returns the result of applying concat to the result of applying
+   `keeps` to f and colls.  Thus function f should return a collection.
+   Returns transducer when no collections are provided"
+  ([f] (comp (keep f) cat))
+  ([f & colls]
+     (apply concat (apply keeps f colls))))
+
 (defn flatten-all
   "Like `flatten`, but also flattens sets and maps."
   [x]

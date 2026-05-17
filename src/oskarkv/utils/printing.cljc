@@ -13,13 +13,13 @@
 
 (defn printit
   "Prints `x` with `println` and returns `x`."
-  [x]
-  (println x) x)
+  [& xs]
+  (apply println xs) (last xs))
 
 (defn printlnit
   "Prints `x` with `println` plus a blank line and returns `x`."
-  [x]
-  (println x) (println) x)
+  [& xs]
+  (apply println xs) (println) (last xs))
 
 (defn tapit
   "Calls `tap>` on `x` and returns `x`."
@@ -28,8 +28,11 @@
 
 (defn pprintit
   "Pprints `x` and returns `x`."
-  [x]
-  (pp/pprint x) x)
+  [& xs]
+  (let [x (last xs)]
+    (if (> (count xs) 1)
+      (do (apply println (butlast xs)) (pp/pprint x) x)
+      (do (pprint x) x))))
 
 (defn pprintlnit
   "Pprints `x` followed by a blank line and returns `x`."

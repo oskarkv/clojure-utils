@@ -20,12 +20,16 @@
            [java.time.format DateTimeFormatter])))
 
 #?(:clj
-   (defn now-iso
-     "Returns the local now as string with format
-      'yyyy-MM-dd HH:mm:ss'."
-     []
-     (.format (LocalDateTime/now)
-              (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss"))))
+   (do
+     (defn now-hms []
+       (.format (LocalDateTime/now)
+                (DateTimeFormatter/ofPattern "HH:mm:ss")))
+     (defn now-iso
+       "Returns the local now as string with format
+        'yyyy-MM-dd HH:mm:ss'."
+       []
+       (.format (LocalDateTime/now)
+                (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss")))))
 
 (defalias invert-map set/map-invert)
 
